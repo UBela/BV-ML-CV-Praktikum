@@ -1,28 +1,12 @@
-from create_dataset import Licenseplates
 import torch
 from torch.utils.data import  DataLoader
 from torchvision import transforms
 
-path_images = './data/images/'
-path_annotations = './data/annotations/'
-
-dataset = Licenseplates(path_images, path_annotations)
-
-
-#Pre-Processing the images:
-images = []
-annotations = []
-
-# Split dataset into images and annotations
-for image, annotation in dataset:
-    images.append(image)
-    annotations.append(annotation)
 
 transformations = transforms.Compose([
     transforms.ToTensor(),
     transforms.Resize((416, 416)),  
 ])
-
 
 def preprocess_images(images, transform=transformations):
 
