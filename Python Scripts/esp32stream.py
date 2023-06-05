@@ -1,8 +1,8 @@
 import cv2
 
 # Replace 'ESP32_CAM_IP' with the actual IP address of your ESP32-CAM
-Cam1 = 'http://192.168.178.112/stream'
-Cam2 = 'http://192.168.178.68/stream'
+Cam1 = 'http://192.168.178.112:81/stream'
+Cam2 = 'http://192.168.178.68:81/stream'
 
 url = Cam2
 
