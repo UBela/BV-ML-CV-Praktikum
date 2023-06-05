@@ -57,3 +57,38 @@ class Licenseplates(Dataset):
                  })
 
         return data
+
+
+#adjust annotations for yolo mdoel and write to .txt files
+def preprocess_annotations(annotations):
+    transformed_annotations = []
+
+    path = './data/labels/'
+    for annotation in annotations:
+ 
+        id = 0
+        xmin, ymin, xmax, ymax = annotation['bounding_box']
+        w = annotation['width']
+        h =  annotation['height']
+        x_center = (xmin + xmax) / (2.0 * w)
+        y_center = (ymin + ymax) / (2.0 * h)
+        bbox_width = (xmax - xmin) / w
+        bbox_height = (ymax - ymin) / h
+        transformed_annotations.append([id,x_center, y_center, bbox_width, bbox_height])
+
+    with open(path + annotation['filename'] + '.txt', 'w') as output:
+        for row in transformed_annotations:
+             output.write(str(row))
+
+#resize images for yolo model
+def preprocess_images(size=(640, 640)):
+    path = 'data/images/'
+    for image in os.listdir(path):
+        if image.endswith('.png'):
+            image_path = os.path.join(path, image)
+            image_ = image.resize(size)
+            image_.save(image_path)
+        
+
+        
+   
