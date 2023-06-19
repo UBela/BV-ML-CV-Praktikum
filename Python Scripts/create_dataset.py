@@ -27,33 +27,34 @@ class Licenseplates(Dataset):
         # Parse XML files and extract relevant information
         data = []
         xml_files = [file for file in os.listdir(self.annotation_dir) if file.endswith('.xml')]
+        
         for xml_file in xml_files:
             label_dict = {}
-           
-            # Use an XML parser to extract relevant information from the XML file
-            # and create a dictionary containing image filename, bounding box coordinates, and image dimensions
-            # Append the dictionary to the data list
             xml_path = os.path.join(self.annotation_dir, xml_file)
-            info = xet.parse(xml_path)
-            root = info.getroot()
-            image_filename = root.find('filename').text
-            image_width = int(root.find('size/width').text)
-            image_height = int(root.find('size/height').text)
+            info = xet.parse(xml_path).getroot()
+            image_filename = info.find('filename').text
+            image_width = int(info.find('size/width').text)
+            image_height = int(info.find('size/height').text)
 
             annotations = []
-            for obj in root.findall('object'):
+            for obj in info.findall('object'):
                 label = obj.find('name').text
                 xmin = int(obj.find('bndbox/xmin').text)
                 ymin = int(obj.find('bndbox/ymin').text)
                 xmax = int(obj.find('bndbox/xmax').text)
                 ymax = int(obj.find('bndbox/ymax').text)
-                bb = [xmin, ymin, xmax, ymax]
+                bbox = [xmin, ymin, xmax, ymax]
+                
+                annotations.append({
+                    'class': label,
+                    'bounding_box': bbox
+                })
+
             data.append({
                 'filename': image_filename,
                 'width': image_width,
                 'height': image_height,
-                'class': 0,
-                'bounding_box': bb
-                 })
+                'annotations': annotations
+            })
 
         return data

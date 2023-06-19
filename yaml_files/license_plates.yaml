@@ -1,0 +1,7 @@
+path: rootpath
+train: path_to_train
+val: path_to_test
+
+#classes
+names:
+  0: license_plate
