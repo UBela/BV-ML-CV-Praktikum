@@ -4,7 +4,7 @@ import cv2
 Cam1 = 'http://192.168.178.112:81/stream'
 Cam2 = 'http://192.168.178.68:81/stream'
 
-url = Cam2
+url = Cam1
 
 # Open the video stream
 cap = cv2.VideoCapture(url)
