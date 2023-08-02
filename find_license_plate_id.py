@@ -26,7 +26,7 @@ def main():
     predicted_license_plate_id = max(set(all_lp_ids), key=all_lp_ids.count)
     print(predicted_license_plate_id)
     end = time.time()
-    print(f"Time: {end - start}")
+    print(f"Time: {np.round(end - start, 2)}")
 
 
 
@@ -56,7 +56,7 @@ def ocr(image):
         return text.strip("\n")
     return "not detected"
 
-def apply_image_processing(img, kernel):
+def apply_image_processing(img):
     kernel = np.ones((3,3),np.uint8)
     # grayscale
     lp_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -72,8 +72,7 @@ def apply_image_processing(img, kernel):
 
 def preprocess_license_plate(license_plate, name, save_img=False):
     
-    kernel = np.ones((3,3),np.uint8)
-    lp_threshold = apply_image_processing(license_plate, kernel)
+    lp_threshold = apply_image_processing(license_plate)
     
     contours, _ = cv2.findContours(lp_threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
@@ -100,9 +99,8 @@ def find_license_plate_id(img_file):
     re_cropped = preprocess_license_plate(detected_licenseplates[0], img_file, save_img=False)
     if re_cropped is not None:
         return ocr(re_cropped)
-    return None
+    return "not detected"
 
 if __name__ == '__main__':
-
     main()
 
