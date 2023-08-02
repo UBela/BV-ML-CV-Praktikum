@@ -225,7 +225,7 @@ class App(customtkinter.CTk):
 
              return image_with_rounded_edges
         
-         image = Image.open("C:/Users/raoul/Downloads/BV-ML-CV-Praktikum/TestImagesSet1/image_1.jpg")
+         image = Image.open("TestImagesSet1\image_1.jpg")
          # Convert the original image to PhotoImage using ImageTk
          #photo = ImageTk.PhotoImage(image_with_rounded_edges)
          self.bg_image = customtkinter.CTkImage(apply_rounded_edges(image),
@@ -385,7 +385,7 @@ class App(customtkinter.CTk):
                 return False
           
 
-         def upload_image_to_database(cursor, image_path, is_allowed, license_plate):
+         def upload_image_to_database(image_path, is_allowed, license_plate):
             try:
                 # Bild in die Datenbank laden
                 image_data = open(image_path, 'rb').read()
@@ -394,11 +394,11 @@ class App(customtkinter.CTk):
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
                 # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
-                cursor.execute("""
+                c.execute("""
                     INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) 
                     VALUES (%s, %s, %s, %s);
                 """, (psycopg2.Binary(image_data), timestamp, license_plate, is_allowed))
-                cursor.connection.commit()
+                c.connection.commit()
 
                 print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
                 print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
