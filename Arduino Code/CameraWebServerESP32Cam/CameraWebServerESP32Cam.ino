@@ -34,11 +34,11 @@
 // ===========================
 // Enter your WiFi credentials
 // ===========================
-const char* ssid1 = "WLAN_17_1";
-const char* password1 = "ME19UB_ka1";
+const char* ssid = "WLAN_17_1";
+const char* password = "ME19UB_ka1";
 
-const char* ssid = "iphone Lasse";
-const char* password = "KoLOn54&";
+const char* ssid1 = "iphone Lasse";
+const char* password1 = "KoLOn54&";
 
 void startCameraServer();
 void setupLedFlash(int pin);

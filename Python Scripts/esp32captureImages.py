@@ -1,12 +1,11 @@
 import cv2
 import time
 import os
-#IP_ADDRESS = "192.168.178.112"
-IP_ADDRESS = "172.20.10.3"
+IP_ADDRESS = "192.168.178.68:81"
 IMAGE_WIDTH = 1600
 IMAGE_HEIGHT = 1200
 
-image_path = './cam_frames/'
+image_path = 'cam_frames/'
 
 if not os.path.exists(image_path):
     os.makedirs(image_path)
