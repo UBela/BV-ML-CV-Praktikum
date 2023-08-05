@@ -1,6 +1,7 @@
 import cv2
 import time
 import os
+from datetime import datetime
 #IP_ADDRESS = "192.168.178.112"
 IP_ADDRESS = "172.20.10.3"
 IMAGE_WIDTH = 1600
@@ -10,6 +11,7 @@ image_path = './cam_frames/'
 
 if not os.path.exists(image_path):
     os.makedirs(image_path)
+
 
 def capture_images_from_esp32_cam(ip_address, capture_count):
     url = f'http://{ip_address}:81/stream'
@@ -31,9 +33,13 @@ def capture_images_from_esp32_cam(ip_address, capture_count):
         ret, frame = cap.read()
 
         if ret:
-            image_name = f"image_{i+1}.jpg"
+            now = datetime.now()
+            # Format as a string
+            current_time = now.strftime("%Y%m%d_%H%M%S")
+            image_name = f"image_{i+1}_{current_time}.jpg"
             cv2.imwrite(image_path + image_name, frame)
             print(f"Image {i+1} captured and saved as {image_name}")
+            print(image_path)
             time.sleep(.5)
         else:
             print(f"Failed to capture image {i+1}")
@@ -41,4 +47,4 @@ def capture_images_from_esp32_cam(ip_address, capture_count):
     # Release the video stream
     cap.release()
 
-capture_images_from_esp32_cam(IP_ADDRESS, 5)
+capture_images_from_esp32_cam(IP_ADDRESS, 2)
