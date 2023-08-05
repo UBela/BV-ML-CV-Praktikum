@@ -1,6 +1,6 @@
-path: rootpath
-train: path_to_train
-val: path_to_test
+path: '/content/drive/MyDrive/license_plate_recognition/yolo_model_data'
+train: '/images/train'
+val: '/images/test'
 
 #classes
 names:
