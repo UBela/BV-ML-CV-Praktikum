@@ -14,7 +14,7 @@ matching.save_contour(image1)
 with open('reference_contour.pkl', 'rb') as f:
     contour = pickle.load(f)
 
-matching.compare_ContourImage(contour,image2)
+print (matching.compare_ContourImage(contour,image2))
 
 
 

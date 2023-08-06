@@ -69,6 +69,7 @@ def compare_contours():
 
     print(f"Match value: {ret}")
 
+
     # Stop timer
     end = timeit.default_timer()
     # Time elapsed
@@ -106,3 +107,10 @@ def compare_ContourImage(contour,image):
     print(f"Time taken by compare_ContourImage: {end - start} seconds")
 
     print(f"Match value: {ret}")
+
+    if (ret < 0.1):
+        return True
+    else: 
+        return False
+
+    
