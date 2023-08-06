@@ -5,9 +5,7 @@ import pickle
 
 
 
-def get_contours(image_path):
-    # Load the image
-    image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+def get_contours(image):
 
     image = cv2.resize(image, (1000, 1000))
 
