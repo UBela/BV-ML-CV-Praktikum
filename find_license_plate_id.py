@@ -62,12 +62,13 @@ def ocr(image):
 
 def apply_image_processing(img):
     kernel = np.ones((3,3),np.uint8) #1
+    """
     target_width, target_height = 300, 100  # Set your desired maximum target width and height
 
     # Calculate the aspect ratio of the original license plate image
     original_height, original_width, _ = img.shape
     aspect_ratio = original_width / original_height
-
+    
     # Determine the new width and height while maintaining the aspect ratio
     if original_width > target_width or original_height > target_height:
         if aspect_ratio >= 3:
@@ -83,7 +84,7 @@ def apply_image_processing(img):
         # Keep the original size if it is within the target dimensions
         img = img.copy()
     # Resize the license plate image to the new dimensions
-    
+    """
     lp_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     lp_gray = cv2.erode(lp_gray, kernel, iterations=1)
     lp_gray = cv2.bilateralFilter(lp_gray, 5, 75, 75)
