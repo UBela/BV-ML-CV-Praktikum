@@ -3,6 +3,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import customtkinter
 class VideoApp:
+    current_frame_class=None
     def __init__(self, window, window2, window_title, video_source=0,width=640, height=480):
         self.window = window
         self.window2 = window2
@@ -16,17 +17,18 @@ class VideoApp:
         
         self.canvas = tk.Canvas(self.window , width=self.width, height=self.height)
         self.canvas.grid(row=0, column=1, padx=(20, 0), pady=(20, 0))
-        self.btn_capture = customtkinter.CTkButton(window, text="Capture", command=lambda:get_current_frame(self))
-        self.btn_capture.grid(row=1, column=0, padx=(0, 0), pady=(0, 0))
+        #self.btn_capture = customtkinter.CTkButton(window, text="Capture", command=lambda:get_current_frame(self))
+        #self.btn_capture.grid(row=1, column=0, padx=(0, 0), pady=(0, 0))
         # Zum Speichern des aktuellen Frames
         self.current_frame = None  
-        def get_current_frame(self):
-            # Diese Methode gibt das aktuelle Frame zurück.
-        # Hier geben wir es einfach aus, aber Sie können es je nach Bedarf weiterverarbeiten.
-            if self.current_frame is not None:
-               cv2.imshow("Snapshot", self.current_frame)
-               cv2.waitKey(0)
-               cv2.destroyAllWindows()
+        # def get_current_frame(self):
+        #     # Diese Methode gibt das aktuelle Frame zurück.
+        # # Hier geben wir es einfach aus, aber Sie können es je nach Bedarf weiterverarbeiten.
+        #     if self.current_frame is not None:
+        #        VideoApp.current_frame_class=self.current_frame 
+        #        cv2.imshow("Snapshot", self.current_frame)
+        #        cv2.waitKey(0)
+        #        cv2.destroyAllWindows()
         
 
         self.is_playing = False
@@ -44,6 +46,7 @@ class VideoApp:
             if ret:
                 # Speichere das aktuelle Frame als Klassenattribut
                 self.current_frame = frame.copy()
+                VideoApp.current_frame_class=self.current_frame 
                 # livestream
                 frame = cv2.resize(frame, (self.width, self.height))
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

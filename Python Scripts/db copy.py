@@ -62,6 +62,7 @@ c.execute("""
         sightings_count INTEGER DEFAULT 0
     );
 """)
+
 c.execute("""
     CREATE TABLE IF NOT EXISTS license_plates_access_accepted (
         id SERIAL PRIMARY KEY,
@@ -72,6 +73,15 @@ c.execute("""
         sightings_count INTEGER DEFAULT 0
     );
 """)
+
+c.execute("""
+    CREATE TABLE IF NOT EXISTS license_plates_and_images (
+        id SERIAL PRIMARY KEY,
+        image_data BYTEA,
+        plate_format VARCHAR(20)
+    );
+""")
+
 c.execute("DELETE FROM license_plates_access_log;")
 c.execute("DELETE FROM license_plates_access_accepted;")
 print("Daten werden bei jedem Aufruf gelöscht")

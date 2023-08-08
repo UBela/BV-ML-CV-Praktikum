@@ -30,6 +30,7 @@ from DatabaseManager import DatabaseManager
 import re
 import cv2
 from live_stream import VideoApp
+import time
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
@@ -69,8 +70,8 @@ class App(customtkinter.CTk):
             """, (psycopg2.Binary(image_data), timestamp, license_plate, is_allowed))
             conn.commit()
 
-            print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
-            print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
+            #print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
+            #print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
       def __init__(self):
          super().__init__()
          self.width = 900
@@ -94,9 +95,9 @@ class App(customtkinter.CTk):
          self.textbox.configure(state="disabled")
          
          self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()
-         print(self.image_ids_Accepted)
-         print(self.timestamps_Accepted)
-         print(self.plate_formats_Accepted)
+         #print(self.image_ids_Accepted)
+         #print(self.timestamps_Accepted)
+         #print(self.plate_formats_Accepted)
         
          self.title("Praktikum UI")
          self.geometry(f"{1100}x{580}")
@@ -116,8 +117,8 @@ class App(customtkinter.CTk):
                  c.execute(query, (plate_format,))
                  result = c.fetchone()
                  if result:
-                     print(f"Plate format '{plate_format}' already exists. Skipping image data upload.")
-                     self.textbox.insert(END,f"Plate format '{plate_format}' already exists. Skipping image data upload.\n")
+                     self.textbox.insert(END,f"Plate format '{plate_format}' already exists. Skipping image data upload.\n"
+                                         + "_______________________________________________________\n\n")
                  else:
                     
                     
@@ -134,9 +135,8 @@ class App(customtkinter.CTk):
                      c.execute(query, ( psycopg2.Binary(image_data), label, timestamp, plate_format))
                      conn.commit()
 
-                     print("Image data loaded into license_plates_access_accepted table.")
-
-                     self.textbox.insert(END,"Image data loaded into accepted table.\n")
+                     self.textbox.insert(END,f"'{plate_format}' loaded into accepted table.\n"
+                                         + "_______________________________________________________\n\n")
                      load_Accepted_current(self,self.current_image_index)
                      print(str(self.current_image_index) + "wurde hochgeladen" )   
                  self.textbox.configure(state="disabled") 
@@ -154,7 +154,6 @@ class App(customtkinter.CTk):
                  )
                  self.textbox.configure(state="normal") 
                  c = conn.cursor()
-                 print( self.current_delete_image_index)
                  plate_format = self.plate_formats_Accepted[self.current_delete_image_index] 
                  # Check if the plate_format exists in the license_plates_access_accepted table
                  query = "SELECT plate_format FROM license_plates_access_accepted WHERE plate_format = %s;"
@@ -166,21 +165,22 @@ class App(customtkinter.CTk):
                      delete_query = "DELETE FROM license_plates_access_accepted WHERE plate_format = %s;"
                      c.execute(delete_query, (plate_format,))
                      conn.commit()
-                     print(f"Plate format '{plate_format}' deleted from license_plates_access_accepted table.")
-                     self.textbox.insert(END,f"Plate format '{plate_format}' deleted from license_plates_access_accepted table.")
+                     
+                     self.textbox.insert(END,f"Plate format '{plate_format}' deleted from license_plates_access_accepted table.\n"
+                                         + "_______________________________________________________\n\n")
                      self.button_accepted[self.current_delete_image_index].pack_forget()
                      self.button_accepted.pop(self.current_delete_image_index)
                  else:
-                     print(f"Plate format '{plate_format}' does not exist in license_plates_access_accepted table. No deletion performed.")
-                     self.textbox.insert(END,f"Plate format '{plate_format}' does not exist in license_plates_access_accepted table. No deletion performed.\n")
+            
+                     self.textbox.insert(END,f"Plate format '{plate_format}' does not exist in license_plates_access_accepted table. No deletion performed.\n"
+                                         + "_______________________________________________________\n\n")
                  c.close()
                  conn.close()
              except psycopg2.Error as e:
                  print("Error connecting to the database:")
-                 self.textbox.insert(END,"Error connecting to the database:\n")
-                 print(e)
-             print("wurde ausgeführt")
-             self.textbox.insert(END,"wurde ausgeführt\n")
+                 self.textbox.insert(END,"Error connecting to the database:\n"
+                                     + "_______________________________________________________\n\n")
+             
              self.textbox.configure(state="disabled")
             
              self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()
@@ -195,9 +195,8 @@ class App(customtkinter.CTk):
             for i, image_id in enumerate(self.plate_formats_Accepted):
                 if self.button_accepted[i].winfo_exists():
                    self.button_accepted[i].pack_forget()
-            print("All data deleted from license_plates_access_accepted table.")
-            print("wurde ausgeführt")
-            self.textbox.insert(END,"All data deleted from license_plates_access_accepted table.\n")
+            self.textbox.insert(END,"All data deleted from accepted table.\n"
+                                + "_______________________________________________________\n\n")
             self.textbox.configure(state="disabled")
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()  
 
@@ -209,28 +208,34 @@ class App(customtkinter.CTk):
          self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="Kamera UI", font=customtkinter.CTkFont(size=20, weight="bold"))
          self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
          self.sidebar_button_1 = customtkinter.CTkButton(self.sidebar_frame,text="Delete", command= lambda:delete_plate_from_database(self))
+         self.sidebar_button_2 = customtkinter.CTkButton(self.sidebar_frame,text="Allow Access",command=lambda:load_image_data_into_accepted_table(self))#command=load_image_data_into_accepted_table(self)
          self.sidebar_button_3= customtkinter.CTkButton(self.sidebar_frame,text="Delete All", command= lambda:delete_plates_all_from_database(self))
          self.sidebar_button_4= customtkinter.CTkButton(self.sidebar_frame,text="Live Feed", command= lambda:start_video(self))
          self.sidebar_button_5= customtkinter.CTkButton(self.sidebar_frame,text="Scan", command= lambda:get_current_image(self))
-         print(self.sidebar_button_1.cget("fg_color"))
+         
+        
          if(self.current_delete_image_index == -1):
-            self.sidebar_button_1.configure(fg_color="grey",hover="false")
-         self.sidebar_button_1.grid(row=1, column=0, padx=20, pady=10)
-         self.sidebar_button_3.grid(row=3, column=0, padx=20, pady=10)
-         self.sidebar_button_4.grid(row=4, column=0, padx=20, pady=10)
+            self.sidebar_button_1.configure(fg_color="grey",hover="false",state="disabled")
+           
+         self.sidebar_button_1.grid(padx=20, pady=10)
+         self.sidebar_button_2.grid(padx=20, pady=10)
+         self.sidebar_button_3.grid(padx=20, pady=10)
+         self.sidebar_button_4.grid(padx=20, pady=10)
+         self.sidebar_button_5.grid(padx=20, pady=10)
        
-         self.sidebar_button_2 = customtkinter.CTkButton(self.sidebar_frame,text="Allow Access",command=lambda:load_image_data_into_accepted_table(self))#command=load_image_data_into_accepted_table(self)
-         self.sidebar_button_2.grid(row=2, column=0, padx=20, pady=10)
+         
+         if(self.current_image_index== -1):
+                self.sidebar_button_2.configure(fg_color="grey",hover="false",state="disabled")  
          self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
-         self.appearance_mode_label.grid(row=6, column=0, padx=20, pady=(10, 0))
+         self.appearance_mode_label.grid( padx=20, pady=(10, 0))
          self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=[ "Dark","Light"],
                                                                     command=self.change_appearance_mode_event)
-         self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 10))
+         self.appearance_mode_optionemenu.grid( padx=20, pady=(10, 10))
          self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w")
-         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
+         self.scaling_label.grid( padx=20, pady=(10, 0))
          self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"],
                                                             command=self.change_scaling_event)
-         self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
+         self.scaling_optionemenu.grid( padx=20, pady=(10, 20))
 
          # create main entry and button
          self.entry = customtkinter.CTkEntry(self, placeholder_text="CTkEntry")
@@ -281,9 +286,13 @@ class App(customtkinter.CTk):
              self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
              width, height = round(self.width*0.4),round(self.height*0.4)
              self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", 0 ,width, height)
-        
+             #cv2.imshow("Snapshot",self.video_app.current_frame_class)
+    
          def get_current_image(self):
-             self.video_app.get_current_frame(self)
+             #for _ in range(5):
+                cv2.imshow("Snapshot", self.video_app.current_frame_class)
+               #cv2.waitKey(1)  # Damit das Bild-Fenster aktualisiert wird
+               # ime.sleep(1)   # Wartet für 1 Sekunde
             
         
         
@@ -291,15 +300,20 @@ class App(customtkinter.CTk):
          def change_delete_index(index):
              print("Before:", self.current_delete_image_index)
              self.current_delete_image_index=index
+             self.current_image_index = -1
              print("After:", self.current_delete_image_index)
              if(self.current_delete_image_index != -1): 
-                self.sidebar_button_1.configure(fg_color=['#3a7ebf', '#1f538d'],hover="true")
+                self.sidebar_button_1.configure(fg_color=['#3a7ebf', '#1f538d'],hover="true",state="normal")
+             if(self.current_image_index == -1): 
+                self.sidebar_button_2.configure(fg_color="grey",hover="false",state="disabled")
             
          def change_image(index):
              self.current_delete_image_index = -1
              self.current_image_index = index
              if(self.current_delete_image_index == -1): 
-                self.sidebar_button_1.configure(fg_color="grey",hover="false")
+                self.sidebar_button_1.configure(fg_color="grey",hover="false",state="disabled")
+             if(self.current_image_index != -1): 
+                self.sidebar_button_2.configure(fg_color=['#3a7ebf', '#1f538d'],hover="true",state="normal")   
              if len(self.image_datas_Log) > 0:
                  display_image(self)
 
@@ -320,10 +334,11 @@ class App(customtkinter.CTk):
                                                 border_width=1,
                                                 command=lambda index=i : change_delete_index(index)
                                                 ))
-                print(str(self.button_accepted[0]))
+                
                 if(self.load_info):
                     self.textbox.configure(state="normal")   
-                    self.textbox.insert(END, str(self.plate_formats_Accepted[i])+"has been added.\n")  
+                    self.textbox.insert(END, str(self.plate_formats_Accepted[i])+"has been added.\n"
+                                        + "_______________________________________________________\n\n")  
                     self.textbox.configure(state="disabled")
                 self.button_accepted[i].pack()
                 
@@ -389,11 +404,11 @@ class App(customtkinter.CTk):
             plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | ACCESS"
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()
             # Anzahl der bereits akzeptierten Buttons
-            current_Log_index = len(self.button_log)
+            current_Log_index = len(self.button_log)-1
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
             set_delete_index_command = lambda idx=current_accepted_index: change_delete_index(idx)
-
+            print(current_Log_index)
             self.button_log.append( customtkinter.CTkButton(master=self.scrollable_frame,
                                     width= 550,corner_radius=0,height=40 ,
                                     text=str(self.timestamps_Log[current_Log_index])+ " | " + str(self.plate_formats_Log[current_Log_index])+ " | " + "NO ACCESS",border_width=1,
@@ -407,9 +422,11 @@ class App(customtkinter.CTk):
                 
                 if(license_plate!=""):
                    if(is_valid_license_plate(license_plate)):
-                      self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist gültig.\n" % (license_plate))
+                      self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist gültig.\n" % (license_plate)
+                                          + "_______________________________________________________\n")
                    else: 
-                      self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (license_plate))
+                      self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (license_plate)
+                                          + "_______________________________________________________\n")
                 self.textbox.configure(state="disabled")
                 start = self.textbox.index("end-1c linestart")
                 end = self.textbox.index("end-1c lineend")
@@ -432,7 +449,7 @@ class App(customtkinter.CTk):
          def upload_image_to_database(image_path, is_allowed, license_plate):
             # Verbindung zur Datenbank herstellen
    
-            print("funktion wird ausgeführt")
+            
             with open(image_path, 'rb') as file:
                 image_data = file.read()
 
@@ -445,8 +462,8 @@ class App(customtkinter.CTk):
             """, (psycopg2.Binary(image_data), timestamp, license_plate, is_allowed))
             conn.commit()
 
-            print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
-            print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
+            #print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
+            #print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
    
 
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()
