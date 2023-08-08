@@ -16,7 +16,7 @@ def __init__(self):
     except psycopg2.Error as e:
                  print("Error connecting to the database:")
                  print(e)    
-import tkinter
+import tkinter as tk
 import tkinter.messagebox
 import customtkinter
 from PIL import Image, ImageTk, ImageDraw, ImageOps
@@ -28,11 +28,49 @@ import psycopg2
 from io import BytesIO
 from DatabaseManager import DatabaseManager
 import re
+import cv2
+from live_stream import VideoApp
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-
+host = "snuffleupagus.db.elephantsql.com"
+port = "5432"
+database = "lvyoqndm"
+user = "lvyoqndm"
+password = "X8HtTPeJRhM89GYr8s36GrBnp5aOI9P2"
+try:
+    conn = psycopg2.connect(
+    host=host,
+    port=port,
+    database=database,
+    user=user,
+    password=password
+             )
+except psycopg2.Error as e:
+                 print("Error connecting to the database:")
+                 print(e)
+c = conn.cursor()
 class App(customtkinter.CTk):
+      
+      def upload_image_to_database(image_path, is_allowed, license_plate):
+            # Verbindung zur Datenbank herstellen
+   
+            print("funktion wird ausgeführt")
+            with open(image_path, 'rb') as file:
+                image_data = file.read()
+
+            # Aktuelles Datum und Uhrzeit als Timestamp erhalten
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+            # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
+            
+            c.execute("""
+                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) VALUES (%s, %s, %s, %s);
+            """, (psycopg2.Binary(image_data), timestamp, license_plate, is_allowed))
+            conn.commit()
+
+            print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
+            print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
       def __init__(self):
          super().__init__()
          self.width = 900
@@ -45,31 +83,16 @@ class App(customtkinter.CTk):
          self.image_ids_Accepted = []
          self.timestamps_Accepted = []
          self.plate_formats_Accepted = []
-         self.current_image_index = 0
+         self.current_image_index = -1
          self.current_delete_image_index = -1
          self.button_index = 0
          self.button_accepted=[]
          self.button_log=[]
-         host = "snuffleupagus.db.elephantsql.com"
-         port = "5432"
-         database = "lvyoqndm"
-         user = "lvyoqndm"
-         password = "X8HtTPeJRhM89GYr8s36GrBnp5aOI9P2"
+         
          self.textbox = customtkinter.CTkTextbox(self,width=500,height=200)
          self.textbox.grid(row=1, column=1, padx=(20, 0), pady=(20, 0))  
          self.textbox.configure(state="disabled")
-         try:
-            conn = psycopg2.connect(
-            host=host,
-            port=port,
-            database=database,
-            user=user,
-            password=password
-             )
-         except psycopg2.Error as e:
-                 print("Error connecting to the database:")
-                 print(e)
-         c = conn.cursor()
+         
          self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()
          print(self.image_ids_Accepted)
          print(self.timestamps_Accepted)
@@ -85,7 +108,7 @@ class App(customtkinter.CTk):
          #################################################################################
         
          def load_image_data_into_accepted_table(self):
-             
+            if(self.current_image_index != -1):
                  self.textbox.configure(state="normal") 
                  image_data = self.image_datas_Log[self.current_image_index].tobytes()
                  plate_format = self.plate_formats_Log[self.current_image_index] 
@@ -115,10 +138,10 @@ class App(customtkinter.CTk):
 
                      self.textbox.insert(END,"Image data loaded into accepted table.\n")
                      load_Accepted_current(self,self.current_image_index)
-                     print(str(self.current_image_index)+ "wurde hochgeladen" )   
+                     print(str(self.current_image_index) + "wurde hochgeladen" )   
                  self.textbox.configure(state="disabled") 
                  self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()
-        
+                 self.current_image_index = -1
         #################################################################################
          def delete_plate_from_database(self):
              try:
@@ -187,16 +210,20 @@ class App(customtkinter.CTk):
          self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
          self.sidebar_button_1 = customtkinter.CTkButton(self.sidebar_frame,text="Delete", command= lambda:delete_plate_from_database(self))
          self.sidebar_button_3= customtkinter.CTkButton(self.sidebar_frame,text="Delete All", command= lambda:delete_plates_all_from_database(self))
+         self.sidebar_button_4= customtkinter.CTkButton(self.sidebar_frame,text="Live Feed", command= lambda:start_video(self))
+         self.sidebar_button_5= customtkinter.CTkButton(self.sidebar_frame,text="Scan", command= lambda:get_current_image(self))
          print(self.sidebar_button_1.cget("fg_color"))
          if(self.current_delete_image_index == -1):
             self.sidebar_button_1.configure(fg_color="grey",hover="false")
          self.sidebar_button_1.grid(row=1, column=0, padx=20, pady=10)
          self.sidebar_button_3.grid(row=3, column=0, padx=20, pady=10)
+         self.sidebar_button_4.grid(row=4, column=0, padx=20, pady=10)
+       
          self.sidebar_button_2 = customtkinter.CTkButton(self.sidebar_frame,text="Allow Access",command=lambda:load_image_data_into_accepted_table(self))#command=load_image_data_into_accepted_table(self)
          self.sidebar_button_2.grid(row=2, column=0, padx=20, pady=10)
          self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
-         self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(10, 0))
-         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Light", "Dark", "System"],
+         self.appearance_mode_label.grid(row=6, column=0, padx=20, pady=(10, 0))
+         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=[ "Dark","Light"],
                                                                     command=self.change_appearance_mode_event)
          self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 10))
          self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w")
@@ -225,7 +252,7 @@ class App(customtkinter.CTk):
 
              return image_with_rounded_edges
         
-         image = Image.open("TestImagesSet1\image_1.jpg")
+         image = Image.open("C:/Users/raoul/Downloads/BV-ML-CV-Praktikum/TestImagesSet1/image_1.jpg")
          # Convert the original image to PhotoImage using ImageTk
          #photo = ImageTk.PhotoImage(image_with_rounded_edges)
          self.bg_image = customtkinter.CTkImage(apply_rounded_edges(image),
@@ -233,7 +260,7 @@ class App(customtkinter.CTk):
         
          #label on image 
          self.bg_image_label = customtkinter.CTkLabel(self,text="", image=self.bg_image)
-         self.bg_image_label.grid(row=0, column=1)
+         self.bg_image_label.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
         
          
          def display_image(self):
@@ -241,8 +268,25 @@ class App(customtkinter.CTk):
              self.bg_image = customtkinter.CTkImage(apply_rounded_edges(photo,8), size=(self.width*0.4, self.height*0.4))
              self.bg_image_label = customtkinter.CTkLabel(self,text="", image=self.bg_image)
              self.bg_image_label.configure(image=self.bg_image)
-             self.bg_image_label.grid(row=0, column=1)
-             #photo.show()    
+             self.bg_image_label.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
+             #photo.show()   
+             #  
+        
+         
+         self.vid = cv2.VideoCapture(0)
+        
+         self.video_app=None
+         def start_video(self):
+             self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
+             self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
+             width, height = round(self.width*0.4),round(self.height*0.4)
+             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", 0 ,width, height)
+        
+         def get_current_image(self):
+             self.video_app.get_current_frame(self)
+            
+        
+        
 
          def change_delete_index(index):
              print("Before:", self.current_delete_image_index)
@@ -386,26 +430,29 @@ class App(customtkinter.CTk):
           
 
          def upload_image_to_database(image_path, is_allowed, license_plate):
-            try:
-                # Bild in die Datenbank laden
-                image_data = open(image_path, 'rb').read()
+            # Verbindung zur Datenbank herstellen
+   
+            print("funktion wird ausgeführt")
+            with open(image_path, 'rb') as file:
+                image_data = file.read()
 
-                # Aktuelles Datum und Uhrzeit als Timestamp erhalten
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+            # Aktuelles Datum und Uhrzeit als Timestamp erhalten
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-                # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
-                c.execute("""
-                    INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) 
-                    VALUES (%s, %s, %s, %s);
-                """, (psycopg2.Binary(image_data), timestamp, license_plate, is_allowed))
-                c.connection.commit()
+            # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
+            c.execute("""
+                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) VALUES (%s, %s, %s, %s);
+            """, (psycopg2.Binary(image_data), timestamp, license_plate, is_allowed))
+            conn.commit()
 
-                print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
-                print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
-            except psycopg2.Error as e:
-                print(f"Fehler beim Hochladen der Datei '{os.path.basename(image_path)}': {e}")
+            print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
+            print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
+   
+
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()
             load_Accepted_current(self,self.current_image_index)
+
+
 
       def open_input_dialog_event(self):
          dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
@@ -420,7 +467,8 @@ class App(customtkinter.CTk):
 
       def sidebar_button_event(self):
          print("sidebar_button click")
-
+      
+   
     # Create an instance of the App class and run the application
 if __name__ == "__main__":
   app = App()
@@ -428,4 +476,30 @@ if __name__ == "__main__":
   def close(self):
         self.conn.close()
 
-                   
+class VideoApp:
+    def __init__(self, window, window_title, video_source=0):
+        # ... (other initialization code) ...
+
+        def start_video(self):
+            self.is_playing = True
+            self.update()
+
+        def stop_video(self):
+            self.is_playing = False
+
+        def update(self):
+            if self.is_playing:
+                ret, frame = self.vid.read()
+                if ret:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
+                    self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
+
+            if self.is_playing:
+                # Call update function again after 10 milliseconds (10ms delay)
+                self.canvas.after(10, self.update)
+
+        def __del__(self):
+            if self.vid.isOpened():
+                self.vid.release()
+                    
