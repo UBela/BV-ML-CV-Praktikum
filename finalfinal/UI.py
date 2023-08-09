@@ -185,46 +185,30 @@ class App(customtkinter.CTk):
 
 
          def delete_plate_from_database(self):
-             try:
-                 conn = psycopg2.connect(
-                     host="snuffleupagus.db.elephantsql.com",
-                     port="5432",
-                     database="lvyoqndm",
-                     user="lvyoqndm",
-                     password="X8HtTPeJRhM89GYr8s36GrBnp5aOI9P2"
-                 )
-                 self.textbox.configure(state="normal") 
-                 c = conn.cursor()
-                 plate_format = self.plate_formats_Accepted[self.current_delete_image_index] 
-                 # Check if the plate_format exists in the license_plates_access_accepted table
-                 query = "SELECT plate_format FROM license_plates_access_accepted WHERE plate_format = %s;"
-                 c.execute(query, (plate_format,))
-                 result = c.fetchone()
-                 
-                 if result and self.current_delete_image_index != -1:
-                     # Delete the plate_format from the license_plates_access_accepted table
-                     delete_query = "DELETE FROM license_plates_access_accepted WHERE plate_format = %s;"
-                     c.execute(delete_query, (plate_format,))
-                     conn.commit()
-                     
-                     self.textbox.insert(END,f"Plate format '{plate_format}' deleted from license_plates_access_accepted table.\n"
-                                         + "_______________________________________________________\n\n")
-                     self.button_accepted[self.current_delete_image_index].pack_forget()
-                     self.button_accepted.pop(self.current_delete_image_index)
-                 else:
-            
-                     self.textbox.insert(END,f"Plate format '{plate_format}' does not exist in license_plates_access_accepted table. No deletion performed.\n"
-                                         + "_______________________________________________________\n\n")
-                 c.close()
-                 conn.close()
-             except psycopg2.Error as e:
-                 print("Error connecting to the database:")
-                 self.textbox.insert(END,"Error connecting to the database:\n"
-                                     + "_______________________________________________________\n\n")
-             
-             self.textbox.configure(state="disabled")
-            
-             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
+                plate_format = self.plate_formats_Accepted[self.current_delete_image_index] 
+                # Check if the plate_format exists in the license_plates_access_accepted table
+                query = "SELECT plate_format FROM license_plates_access_accepted WHERE plate_format = %s;"
+                c.execute(query, (plate_format,))
+                result = c.fetchone()
+                
+                if result and self.current_delete_image_index != -1:
+                    # Delete the plate_format from the license_plates_access_accepted table
+                    delete_query = "DELETE FROM license_plates_access_accepted WHERE plate_format = %s;"
+                    c.execute(delete_query, (plate_format,))
+                    conn.commit()
+                    
+                    self.textbox.insert(END,f"Plate format '{plate_format}' deleted from license_plates_access_accepted table.\n"
+                                        + "_______________________________________________________\n\n")
+                    self.button_accepted[self.current_delete_image_index].pack_forget()
+                    self.button_accepted.pop(self.current_delete_image_index)
+                else:
+        
+                    self.textbox.insert(END,f"Plate format '{plate_format}' does not exist in license_plates_access_accepted table. No deletion performed.\n"
+                                        + "_______________________________________________________\n\n")
+                
+                self.textbox.configure(state="disabled")
+                
+                self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
          #################################################################################
          def delete_plates_all_from_database(self):      
             # Delete all data from the license_plates_access_accepted table
