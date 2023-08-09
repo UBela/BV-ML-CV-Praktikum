@@ -80,8 +80,6 @@ class DatabaseManager:
                                 plate_formats_Accepted.append(plate_format)
                             except Exception as e:
                                 print(f"Error displaying the image: {e}")       
-                            c.close()
-                            conn.close()
                     print(image_ids_Accepted)
                     print(image_ids_Log)
 

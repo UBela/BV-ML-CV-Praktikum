@@ -319,8 +319,8 @@ class App(customtkinter.CTk):
                
         
          
-         #camera_ip = "http://192.168.178.68:81/stream"
-         camera_ip = 0
+         camera_ip = "http://192.168.178.68:81/stream"
+         #camera_ip = 0
 
          self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", camera_ip ,360, 240)
          def start_video(self):
@@ -410,7 +410,7 @@ class App(customtkinter.CTk):
             
             for i, image_id in enumerate(self.plate_formats_Accepted):
                 
-                self.button_accepted.insert(0,customtkinter.CTkButton(master=self.scrollable_frame2,
+                self.button_accepted.append(customtkinter.CTkButton(master=self.scrollable_frame2,
                                                 width= 550,corner_radius=0,height=40 ,
                                                 text=str(self.timestamps_Accepted[i])+ " | " + str(self.plate_formats_Accepted[i])+ " | " + "ACCESS",
                                                 border_width=1,
@@ -459,25 +459,25 @@ class App(customtkinter.CTk):
             #                                 command=lambda index=i: change_image(index))
         
         
-         def load_Accepted_current(self, index):
-            plate_format = self.plate_formats_Log[index]
+         def load_Accepted_current(self, index):        
 
             # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
-            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} "
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
+            plate_format = self.plate_formats_Accepted[-1]
+            plate_text = f"{self.timestamps_Accepted[-1]} | {plate_format} "
             # Anzahl der bereits akzeptierten Buttons
             current_accepted_index = len(self.button_accepted)
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
             set_delete_index_command = lambda idx=current_accepted_index: change_delete_index(idx)
 
-            self.button_accepted.insert(0,customtkinter.CTkButton(master=self.scrollable_frame2,
+            self.button_accepted.append(customtkinter.CTkButton(master=self.scrollable_frame2,
                                             width=550, corner_radius=0, height=40,
                                             text=plate_text,
                                             border_width=1,
                                             command=set_delete_index_command
                                             ))
-            self.button_accepted[0].pack()
+            self.button_accepted[-1].pack()
 
           
          def load_log_current(self, index):
@@ -491,12 +491,12 @@ class App(customtkinter.CTk):
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
             set_delete_index_command = lambda idx=self.current_image_index: change_delete_index(idx)
-            self.button_log.insert(0, customtkinter.CTkButton(master=self.scrollable_frame,
+            self.button_log.append(customtkinter.CTkButton(master=self.scrollable_frame,
                                     width= 550,corner_radius=0,height=40 ,
                                     text=plate_text,
                                     border_width=1,
                                     command=set_delete_index_command))
-            self.button_log[0].pack()
+            self.button_log[-1].pack()
   
         
          def write_text_entry():
