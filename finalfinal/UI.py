@@ -539,20 +539,18 @@ class App(customtkinter.CTk):
 
            try:
                 # Aktuelles Datum und Uhrzeit als Timestamp erhalten
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                c.execute("""
-                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) VALUES (%s, %s, %s, %s);
-            """, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
-                conn.commit()
-                print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-           except psycopg2.DatabaseError as e:
-                # Fehlermeldung ausgeben, wenn ein Datenbankfehler auftritt
-                print("Datenbankfehler:", e)
-            
-           except Exception as e:
-                # Allgemeine Fehlermeldung ausgeben
-                print("Ein unerwarteter Fehler ist aufgetreten:", e)
+                # Bild in die Datenbank laden und Timestamp sowie plate_format hinzufügen
+                c.execute("""
+                    INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, access) VALUES (%s,%s, %s, %s);
+                """, (psycopg2.Binary(image), timestamp, license_plate,is_allowed))
+                conn.commit()
+
+               
+                print(f"Datei '{1}' erfolgreich hochgeladen. Standard-Kennzeichen: {license_plate}")
+           except psycopg2.Error as e:
+            print(f"Fehler beim Hochladen der Datei")
            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()     
            load_log_current(self,self.current_image_index)
 
