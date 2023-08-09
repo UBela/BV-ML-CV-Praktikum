@@ -540,12 +540,9 @@ class App(customtkinter.CTk):
            try:
                 # Aktuelles Datum und Uhrzeit als Timestamp erhalten
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                query="""
-                    INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, access) VALUES (%s, %s, %s, %s);
-                """
-                # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
-                c.execute(query, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
-                
+                c.execute("""
+                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) VALUES (%s, %s, %s, %s);
+            """, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
                 conn.commit()
                 print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
 
