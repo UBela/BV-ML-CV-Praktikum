@@ -357,16 +357,17 @@ class App(customtkinter.CTk):
              if(self.current_image_index == -1): 
                 self.sidebar_button_2.configure(fg_color="grey",hover="false",state="disabled")
             
-         def change_image(index):
+         def change_image(index):             
+             print("Before:", self.current_image_index )
              self.current_delete_image_index = -1
              self.current_image_index = index
+             print("Before:", self.current_image_index )
              if(self.current_delete_image_index == -1): 
                 self.sidebar_button_1.configure(fg_color="grey",hover="false",state="disabled")
              if(self.current_image_index != -1): 
                 self.sidebar_button_2.configure(fg_color=['#3a7ebf', '#1f538d'],hover="true",state="normal")   
              if len(self.image_datas_Log) > 0:
-                 display_image(self)
-
+                 display_image(self)             
             
                 
                 
@@ -448,21 +449,20 @@ class App(customtkinter.CTk):
             self.button_accepted[-1].pack()
 
           
-         def load_log_current(self, index):
-           
+         def load_log_current(self):
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
-            
             # Anzahl der bereits akzeptierten Buttons
-
-            plate_format = self.plate_formats_Log[-1]
-            state="Access" if self.plate_access_Log[-1] else "No Access" 
+            current_Log_index = -1
+            plate_format = self.plate_formats_Log[current_Log_index]
+            access="Access" if self.plate_access_Log[current_Log_index] else "No Access" 
+            timestamp=self.timestamps_Log[current_Log_index]
             # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
-            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | {state}"
-            current_Log_index = len(self.button_log)
+            plate_text = f"{self.timestamps_Log[timestamp]} | {plate_format} | {access}"            
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
-            set_delete_index_command = lambda idx=self.current_image_index: change_delete_index(idx)
-            self.button_log.append(customtkinter.CTkButton(master=self.scrollable_frame,
+            set_delete_index_command = lambda idx=current_Log_index: change_image(idx)
+            print(current_Log_index)
+            self.button_log.append( customtkinter.CTkButton(master=self.scrollable_frame,
                                     width= 550,corner_radius=0,height=40 ,
                                     text=plate_text,
                                     border_width=1,
@@ -506,17 +506,9 @@ class App(customtkinter.CTk):
            try:
                 # Aktuelles Datum und Uhrzeit als Timestamp erhalten
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                query = """
-                     INSERT INTO license_plates_access_accepted ( timestamp, plate_format)
-                     VALUES ( %s, %s);
-                     """
-                c.execute(query, (  timestamp,license_plate))
-                conn.commit()
-
                 c.execute("""
-                    INSERT INTO license_plates_access_log ( timestamp, plate_format) 
-                    VALUES (%s, %s);
-                """, ( timestamp, license_plate))
+                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, access) VALUES (%s, %s, %s, %s);
+                    """, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
                 conn.commit()
                 print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
 
@@ -528,7 +520,7 @@ class App(customtkinter.CTk):
                 # Allgemeine Fehlermeldung ausgeben
                 print("Ein unerwarteter Fehler ist aufgetreten:", e)
 
-           load_log_current(self,self.current_image_index)
+           load_log_current(self)
 
          def upload_image_to_database_contour(contour, license_plate):
             
