@@ -151,6 +151,39 @@ class App(customtkinter.CTk):
                  self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
                  self.current_image_index = -1
         #################################################################################
+
+         def load_image_data_into_accepted_table(self,plate):
+                 self.textbox.configure(state="normal") 
+                 query = "SELECT plate_format FROM license_plates_access_accepted WHERE plate_format = %s;"
+                 c.execute(query, (plate,))
+                 result = c.fetchone()
+                 if result:
+                     self.textbox.insert(END,f"Plate format '{plate}' already exists. Skipping image data upload.\n"
+                                         + "_______________________________________________________\n\n")
+                 else:
+                    
+                    
+                     # Retrieve the plate_format from the license_plates_access_log table for the current image_id
+                     query = "SELECT plate_format FROM license_plates_access_accepted WHERE id = %s;"
+                
+                     timestamp = datetime.now().replace(microsecond=0)  # Example timestamp value, you can change this accordingly
+
+                     query = """
+                     INSERT INTO license_plates_access_accepted ( timestamp, plate_format)
+                     VALUES ( %s, %s);
+                     """
+                     c.execute(query, (  timestamp,plate))
+                     conn.commit()
+
+                     self.textbox.insert(END,f"'{plate}' loaded into accepted table.\n"
+                                         + "_______________________________________________________\n\n")
+                     load_Accepted_current(self,self.current_image_index)
+                     print(str(self.current_image_index) + "wurde hochgeladen" )   
+                 self.textbox.configure(state="disabled") 
+                 self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
+                 self.current_image_index = -1
+
+
          def delete_plate_from_database(self):
              try:
                  conn = psycopg2.connect(
@@ -474,6 +507,7 @@ class App(customtkinter.CTk):
                    if(is_valid_license_plate(license_plate)):
                       self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist gültig.\n" % (license_plate)
                                           + "_______________________________________________________\n")
+                      load_image_data_into_accepted_table(self,license_plate)
                    else: 
                       self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (license_plate)
                                           + "_______________________________________________________\n")
@@ -497,31 +531,32 @@ class App(customtkinter.CTk):
           
 
          def upload_image_to_database_log(image, is_allowed, license_plate):
-            # Verbindung zur Datenbank herstellen
 
+           try:
+                # Aktuelles Datum und Uhrzeit als Timestamp erhalten
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                query="""
+                    INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, access) VALUES (%s, %s, %s, %s);
+                """
+                # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
+                c.execute(query, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
+                
+                conn.commit()
+                print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
 
-            # Aktuelles Datum und Uhrzeit als Timestamp erhalten
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
-            c.execute("""
-                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, access) VALUES (%s, %s, %s, %s);
-            """, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
-            conn.commit()
-
-            print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
-   
-
-            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
-            load_log_current(self,self.current_image_index)
+           except psycopg2.DatabaseError as e:
+                # Fehlermeldung ausgeben, wenn ein Datenbankfehler auftritt
+                print("Datenbankfehler:", e)
+            
+           except Exception as e:
+                # Allgemeine Fehlermeldung ausgeben
+                print("Ein unerwarteter Fehler ist aufgetreten:", e)
 
 
          def upload_image_to_database_contour(contour, license_plate):
             
-
             # Aktuelles Datum und Uhrzeit als Timestamp erhalten
             
-
             # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
             c.execute("""
                 INSERT INTO license_plates_and_images (image_data, plate_format) VALUES ( %s, %s);
