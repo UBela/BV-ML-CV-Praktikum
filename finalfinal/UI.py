@@ -333,6 +333,7 @@ class App(customtkinter.CTk):
              else:
                  print("Live Video Feed is already active")
                  
+         print(self.plate_formats_contour)
     
         ### process for checking 
          def get_current_image(self):
@@ -487,12 +488,15 @@ class App(customtkinter.CTk):
 
           
          def load_log_current(self, index):
-            plate_format = self.plate_formats_Log[index]
-            plate_access=self.plate_access_Log[index]
-            # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
-            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | {plate_access}"
+           
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
+            
             # Anzahl der bereits akzeptierten Buttons
+
+            plate_format = self.plate_formats_Log[-1]
+            state="Access" if self.plate_access_Log[-1] else "No Access" 
+            # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
+            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | {state}"
             current_Log_index = len(self.button_log)
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
@@ -541,12 +545,17 @@ class App(customtkinter.CTk):
            try:
                 # Aktuelles Datum und Uhrzeit als Timestamp erhalten
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                query="""
-                    INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, access) VALUES (%s, %s, %s, %s);
-                """
-                # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
-                c.execute(query, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
-                
+                query = """
+                     INSERT INTO license_plates_access_accepted ( timestamp, plate_format)
+                     VALUES ( %s, %s);
+                     """
+                c.execute(query, (  timestamp,license_plate))
+                conn.commit()
+
+                c.execute("""
+                    INSERT INTO license_plates_access_log ( timestamp, plate_format) 
+                    VALUES (%s, %s);
+                """, ( timestamp, license_plate))
                 conn.commit()
                 print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
 
@@ -558,6 +567,7 @@ class App(customtkinter.CTk):
                 # Allgemeine Fehlermeldung ausgeben
                 print("Ein unerwarteter Fehler ist aufgetreten:", e)
 
+           load_log_current(self,self.current_image_index)
 
          def upload_image_to_database_contour(contour, license_plate):
             
