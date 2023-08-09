@@ -34,7 +34,6 @@ def process_license_plates(path_to_cam_frames):
     if predicted_license_plate_id != "No License Plate Detected!" and predicted_license_plate_id != "License Plate Text not Detected!":
         predicted_license_plate_id = predicted_license_plate_id.replace(" ","")
     image_data = Image.open(img_files[0])
-    print(predicted_license_plate_id)
     return predicted_license_plate_id, image_data    
 
 #crop the license plate and save as image
