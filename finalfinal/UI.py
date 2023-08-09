@@ -65,7 +65,7 @@ class App(customtkinter.CTk):
                 image_data = file.read()
 
             # Aktuelles Datum und Uhrzeit als Timestamp erhalten
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
             
@@ -412,7 +412,7 @@ class App(customtkinter.CTk):
          def load_Log(self):
              for i, image_id in enumerate(self.image_ids_Log):
                 
-                self.button_log.insert(0, customtkinter.CTkButton(master=self.scrollable_frame,
+                self.button_log.append(customtkinter.CTkButton(master=self.scrollable_frame,
                                                 width= 550,corner_radius=0,height=40 ,
                                                 text=str(self.timestamps_Log[i])+ " | " + str(self.plate_formats_Log[i])+ " | " + "NO ACCESS",border_width=1,
                                                 command=lambda index=i: change_image(index)))
@@ -481,7 +481,7 @@ class App(customtkinter.CTk):
                 start = self.textbox.index("end-1c linestart")
                 end = self.textbox.index("end-1c lineend")
                 self.textbox.tag_add("gray_bg", start, end)
-                self.textbox.configure("gray_bg", bg="gray", padx=1, pady=1)
+                self.textbox.configure("gray_bg", padx=1, pady=1)
                 
 
 
