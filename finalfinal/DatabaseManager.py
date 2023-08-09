@@ -31,22 +31,25 @@ class DatabaseManager:
                         password="X8HtTPeJRhM89GYr8s36GrBnp5aOI9P2"
                     )
                     c = conn.cursor()
-                    query = "SELECT id, image_data, timestamp, plate_format FROM license_plates_access_log;"
+                    query = "SELECT id, image_data, timestamp, plate_format,access FROM license_plates_access_log;"
                     c.execute(query)
                     results = c.fetchall()
                     image_datas_Log=[]
                     image_ids_Log=[]
                     timestamps_Log=[]
                     plate_formats_Log=[]
+                    plate_access_Log=[]
                     image_ids_Accepted=[]
                     timestamps_Accepted=[]
                     plate_formats_Accepted=[]
+
 
                     for result in results:
                             image_id = result[0]
                             image_data = result[1]
                             timestamp = result[2]
                             plate_format = result[3]
+                            access=result[4]
                             try:  
                                 # Create an Image object from the binary data
                                 image = Image.open(BytesIO(image_data))
@@ -67,6 +70,7 @@ class DatabaseManager:
                                 image_ids_Log.append(image_id)
                                 timestamps_Log.append(timestamp)
                                 plate_formats_Log.append(plate_format)
+                                plate_access_Log.append(access)
                             except Exception as e:
                                 print(f"Error displaying the image: {e}")
                     query = "SELECT id, image_data, timestamp, plate_format FROM license_plates_access_accepted;"
@@ -110,6 +114,6 @@ class DatabaseManager:
                     print("Error connecting to the database:")
                     print(e)        
                 print("datenbanken wurden Aktualisiert")
-                return image_datas_Log,image_ids_Log,timestamps_Log,plate_formats_Log,image_ids_Accepted,timestamps_Accepted,plate_formats_Accepted,plate_formats_contour,image_datas_contour
+                return image_datas_Log,image_ids_Log,timestamps_Log,plate_formats_Log,image_ids_Accepted,timestamps_Accepted,plate_formats_Accepted,plate_formats_contour,image_datas_contour,plate_access_Log
         
         

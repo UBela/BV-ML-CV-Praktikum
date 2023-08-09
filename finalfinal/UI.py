@@ -83,6 +83,7 @@ class App(customtkinter.CTk):
          self.image_ids_Log = []
          self.timestamps_Log = []
          self.plate_formats_Log = []
+         self.plate_access_Log=[]
          self.image_datas_Accepted = []
          self.image_ids_Accepted = []
          self.timestamps_Accepted = []
@@ -94,12 +95,13 @@ class App(customtkinter.CTk):
          self.button_log=[]
          self.plate_formats_contour=[]
          self.image_datas_contour=[]
+
          
          self.textbox = customtkinter.CTkTextbox(self,width=500,height=200)
          self.textbox.grid(row=1, column=1, padx=(20, 0), pady=(20, 0))  
          self.textbox.configure(state="disabled")
          
-         self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour = DatabaseManager.retrieve_images_from_database()
+         self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
          #print(self.image_ids_Accepted)
          #print(self.timestamps_Accepted)
          #print(self.plate_formats_Accepted)
@@ -145,7 +147,7 @@ class App(customtkinter.CTk):
                      load_Accepted_current(self,self.current_image_index)
                      print(str(self.current_image_index) + "wurde hochgeladen" )   
                  self.textbox.configure(state="disabled") 
-                 self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour = DatabaseManager.retrieve_images_from_database()
+                 self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
                  self.current_image_index = -1
         #################################################################################
          def delete_plate_from_database(self):
@@ -188,7 +190,7 @@ class App(customtkinter.CTk):
              
              self.textbox.configure(state="disabled")
             
-             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour = DatabaseManager.retrieve_images_from_database()
+             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
          #################################################################################
          def delete_plates_all_from_database(self):      
             # Delete all data from the license_plates_access_accepted table
@@ -203,7 +205,7 @@ class App(customtkinter.CTk):
             self.textbox.insert(END,"All data deleted from accepted table.\n"
                                 + "_______________________________________________________\n\n")
             self.textbox.configure(state="disabled")
-            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour = DatabaseManager.retrieve_images_from_database()  
+            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()  
 
 
          # create sidebar frame with widgets
@@ -366,7 +368,7 @@ class App(customtkinter.CTk):
             
             for i, image_id in enumerate(self.plate_formats_Accepted):
                 
-                self.button_accepted.append(customtkinter.CTkButton(master=self.scrollable_frame2,
+                self.button_accepted.insert(0,customtkinter.CTkButton(master=self.scrollable_frame2,
                                                 width= 550,corner_radius=0,height=40 ,
                                                 text=str(self.timestamps_Accepted[i])+ " | " + str(self.plate_formats_Accepted[i])+ " | " + "ACCESS",
                                                 border_width=1,
@@ -401,7 +403,7 @@ class App(customtkinter.CTk):
          def load_Log(self):
              for i, image_id in enumerate(self.image_ids_Log):
                 
-                self.button_log.append( customtkinter.CTkButton(master=self.scrollable_frame,
+                self.button_log.insert(0, customtkinter.CTkButton(master=self.scrollable_frame,
                                                 width= 550,corner_radius=0,height=40 ,
                                                 text=str(self.timestamps_Log[i])+ " | " + str(self.plate_formats_Log[i])+ " | " + "NO ACCESS",border_width=1,
                                                 command=lambda index=i: change_image(index)))
@@ -419,15 +421,15 @@ class App(customtkinter.CTk):
             plate_format = self.plate_formats_Log[index]
 
             # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
-            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | ACCESS"
-            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour = DatabaseManager.retrieve_images_from_database()
+            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} "
+            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
             # Anzahl der bereits akzeptierten Buttons
             current_accepted_index = len(self.button_accepted)
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
             set_delete_index_command = lambda idx=current_accepted_index: change_delete_index(idx)
 
-            self.button_accepted.append(customtkinter.CTkButton(master=self.scrollable_frame2,
+            self.button_accepted.insert(0,customtkinter.CTkButton(master=self.scrollable_frame2,
                                             width=550, corner_radius=0, height=40,
                                             text=plate_text,
                                             border_width=1,
@@ -435,21 +437,23 @@ class App(customtkinter.CTk):
                                             ))
             self.button_accepted[-1].pack()
 
-            def load_log_current(self, index):
-                plate_format = self.plate_formats_Log[index]
-
+          
+         def load_log_current(self, index):
+            plate_format = self.plate_formats_Log[index]
+            plate_access=self.plate_access_Log[index]
             # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
-            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | ACCESS"
-            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour = DatabaseManager.retrieve_images_from_database()
+            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | {plate_access}"
+            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
             # Anzahl der bereits akzeptierten Buttons
-            current_Log_index = len(self.button_log)-1
+            current_Log_index = len(self.button_log)
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
-            set_delete_index_command = lambda idx=current_accepted_index: change_delete_index(idx)
+            set_delete_index_command = lambda idx=self.current_image_index: change_delete_index(idx)
             print(current_Log_index)
-            self.button_log.append( customtkinter.CTkButton(master=self.scrollable_frame,
+            self.button_log.insert(0, customtkinter.CTkButton(master=self.scrollable_frame,
                                     width= 550,corner_radius=0,height=40 ,
-                                    text=str(self.timestamps_Log[current_Log_index])+ " | " + str(self.plate_formats_Log[current_Log_index])+ " | " + "NO ACCESS",border_width=1,
+                                    text=plate_text,
+                                    border_width=1,
                                     command=set_delete_index_command))
             self.button_log[-1].pack()
   
@@ -501,8 +505,8 @@ class App(customtkinter.CTk):
             #print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
    
 
-            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour = DatabaseManager.retrieve_images_from_database()
-            load_Accepted_current(self,self.current_image_index)
+            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
+            load_log_current(self,self.current_image_index)
 
 
          def upload_image_to_database_contour(contour, license_plate):
@@ -521,8 +525,7 @@ class App(customtkinter.CTk):
             print(f"License Plate: {license_plate}")
    
 
-            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour = DatabaseManager.retrieve_images_from_database()
-            load_Accepted_current(self,self.current_image_index)
+            self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
 
       def open_input_dialog_event(self):
          dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
