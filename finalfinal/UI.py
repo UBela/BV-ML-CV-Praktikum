@@ -215,8 +215,7 @@ class App(customtkinter.CTk):
             
                      self.textbox.insert(END,f"Plate format '{plate_format}' does not exist in license_plates_access_accepted table. No deletion performed.\n"
                                          + "_______________________________________________________\n\n")
-                 c.close()
-                 conn.close()
+             
              except psycopg2.Error as e:
                  print("Error connecting to the database:")
                  self.textbox.insert(END,"Error connecting to the database:\n"
