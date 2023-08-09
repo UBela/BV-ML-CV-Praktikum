@@ -17,6 +17,8 @@ class DatabaseManager:
         image_ids_Accepted_old=[]
         timestamps_Accepted_old=[]
         plate_formats_Accepted_old=[]
+        plate_formats_contour=[]
+        plate_formats_contour=[]
         @staticmethod
         def retrieve_images_from_database():
                 try:
@@ -39,6 +41,7 @@ class DatabaseManager:
                     image_ids_Accepted=[]
                     timestamps_Accepted=[]
                     plate_formats_Accepted=[]
+
                     for result in results:
                             image_id = result[0]
                             image_data = result[1]
@@ -85,24 +88,28 @@ class DatabaseManager:
                             conn.close()
                     print(image_ids_Accepted)
                     print(image_ids_Log)
+
+                    query = "SELECT id, image_data, plate_format FROM license_plates_and_images;"
+                    c.execute(query)
+                    results = c.fetchall()
+                    plate_formats_contour=[]
+                    image_datas_contour=[]
+                    for result in results:
+                                image_data = result[1]
+                                plate_format = result[2]
+                                try:  
+
+                                    image_datas_contour.append(image_data)
+                                    plate_formats_contour.append(plate_format)
+                                except Exception as e:
+                                    print(f"Error displaying the image: {e}")       
+                                c.close()
+                                conn.close()
+        
                 except psycopg2.Error as e:
                     print("Error connecting to the database:")
                     print(e)        
                 print("datenbanken wurden Aktualisiert")
-                return image_datas_Log,image_ids_Log,timestamps_Log,plate_formats_Log,image_ids_Accepted,timestamps_Accepted,plate_formats_Accepted
+                return image_datas_Log,image_ids_Log,timestamps_Log,plate_formats_Log,image_ids_Accepted,timestamps_Accepted,plate_formats_Accepted,plate_formats_contour,image_datas_contour
         
-        def check_for_updates(plate_formats_Log_old,
-                               plate_formats_Accepted_old):
-             # Retrieve the latest data
-             image_datas_Log,image_ids_Log,timestamps_Log,plate_formats_Log,image_ids_Accepted,timestamps_Accepted,plate_formats_Accepted = DatabaseManager.retrieve_images_from_database()
-
-             # Compare with the previous data
-             if plate_formats_Log_old != plate_formats_Log or plate_formats_Accepted_old != plate_formats_Accepted:
-                 # Data has changed, update the UI
-                 return True
-
-            # # Update the previous data
-            # self.previous_data = latest_data
-
-            # # Schedule the next update check
-            # self.after(5000, self.check_for_updates)
+        
