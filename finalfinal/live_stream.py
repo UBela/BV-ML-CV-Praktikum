@@ -2,67 +2,81 @@ import cv2
 import tkinter as tk
 from PIL import Image, ImageTk
 import customtkinter
+import threading
+import queue
+
 class VideoApp:
-    current_frame_class=None
-    def __init__(self, window, window2, window_title, video_source=0,width=640, height=480):
+    instance = None
+    current_frame_class = None
+
+    @classmethod
+    def get_instance(cls, *args, **kwargs):
+        if not cls.instance:
+            cls.instance = cls(*args, **kwargs)
+        return cls.instance
+
+    def __init__(self, window, window_title, video_source=0, width=640, height=480):
         self.window = window
-        self.window2 = window2
         self.window.title(window_title)
-        # Desired dimensions for video stream
         self.width = width
         self.height = height
-        print(self.width,self.height)
-        # Open video source (use the default camera or a specified video file)
+        print(self.width, self.height)
+
         self.vid = cv2.VideoCapture(video_source)
-        
-        self.canvas = tk.Canvas(self.window , width=self.width, height=self.height)
+        self.canvas = tk.Canvas(self.window, width=self.width, height=self.height)
         self.canvas.grid(row=0, column=1, padx=(20, 0), pady=(20, 0))
-        #self.btn_capture = customtkinter.CTkButton(window, text="Capture", command=lambda:get_current_frame(self))
-        #self.btn_capture.grid(row=1, column=0, padx=(0, 0), pady=(0, 0))
-        # Zum Speichern des aktuellen Frames
-        self.current_frame = None  
-        # def get_current_frame(self):
-        #     # Diese Methode gibt das aktuelle Frame zurück.
-        # # Hier geben wir es einfach aus, aber Sie können es je nach Bedarf weiterverarbeiten.
-        #     if self.current_frame is not None:
-        #        VideoApp.current_frame_class=self.current_frame 
-        #        cv2.imshow("Snapshot", self.current_frame)
-        #        cv2.waitKey(0)
-        #        cv2.destroyAllWindows()
-        
+        self.image_on_canvas = None
 
+        self.current_frame = None
         self.is_playing = False
-        self.start_video()
-    def start_video(self):
-        self.is_playing = True
+        self.queue = queue.Queue(maxsize=10)
+        self.thread = threading.Thread(target=self.video_stream, args=())
+        self.thread.daemon = True
+        self.thread.start()
+
         self.update()
+        self.window.bind("<Key>", self.on_key_press)
 
-    def stop_video(self):
-        self.is_playing = False
-
-    def update(self):
-        if self.is_playing:
+    def video_stream(self):
+        while True:
             ret, frame = self.vid.read()
             if ret:
-                # Speichere das aktuelle Frame als Klassenattribut
-                self.current_frame = frame.copy()
-                VideoApp.current_frame_class=self.current_frame 
-                # livestream
-                frame = cv2.resize(frame, (self.width, self.height))
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
-                self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
+                self.current_frame = frame.copy()
+                VideoApp.current_frame_class = self.current_frame 
+                frame = cv2.resize(frame, (self.width, self.height))
+                
+                try:
+                    self.queue.put(frame, True, 0.02)
+                except queue.Full:
+                    pass
 
-        if self.is_playing:
-            self.window.after(10, self.update)
-    
+    def update(self):
+        try:
+            frame = self.queue.get(True, 0.02)
+            self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
+
+            if self.image_on_canvas is None:
+                self.image_on_canvas = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
+            else:
+                self.canvas.itemconfig(self.image_on_canvas, image=self.photo)
+                self.canvas.update()
+        except queue.Empty:
+            pass
+
+        self.window.after(10, self.update)
+
+    def on_key_press(self, event):
+        if event.char == 'q':
+            self.window.destroy()
+
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
 
-# Change the video_source to a specific video file or 0 for the default camera
-video_source = 0
+camera_ip = "http://192.168.178.68:81/stream"
+video_source = camera_ip
 if __name__ == "__main__":
     root = tk.Tk()
-    app = VideoApp(root,root,  "Live Video Feed", video_source)
-    root.mainloop() 
+    app = VideoApp(root, "Live Video Feed", video_source)
+    root.mainloop()

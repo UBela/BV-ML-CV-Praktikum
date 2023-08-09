@@ -322,13 +322,16 @@ class App(customtkinter.CTk):
          camera_ip = "http://192.168.178.68:81/stream"
          #camera_ip = 0
 
-         self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", camera_ip ,360, 240)
+         self.video_app=VideoApp(self,"Live Video Feed", camera_ip)
          def start_video(self):
-             self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
-             self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
-             width, height = round(self.width*0.4),round(self.height*0.4)
-             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", camera_ip ,360, 240)
-             # cv2.imshow("Snapshot",self.video_app.current_frame_class)
+             if not self.video_app:
+                self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
+                self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
+                width, height = round(self.width*0.4),round(self.height*0.4)
+                self.video_app=VideoApp(self,"Live Video Feed", camera_ip)  
+             else:
+                 print("Live Video Feed is already active")
+                 
     
         ### process for checking 
          def get_current_image(self):
