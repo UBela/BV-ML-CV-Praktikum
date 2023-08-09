@@ -83,6 +83,7 @@ def compare_contours():
 
 def save_contour(img):
     contours, _ = get_contours(img)
+    print("reached contours")
     # Find the largest contour in the image
     contour = max(contours, key=cv2.contourArea)
 

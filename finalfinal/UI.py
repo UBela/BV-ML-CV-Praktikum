@@ -363,9 +363,10 @@ class App(customtkinter.CTk):
                 return
             # plate accepted and contour exists
             if(plate in self.plate_formats_contour):
-                index = self.plate_formates_contour.index(plate)
+                index = self.plate_formats_contour.index(plate)
                 contour = self.image_datas_contour[index]
-                result = shape.compare_ContourImage(contour, img)
+                print(type(contour))
+                result = shape.compare_ContourImage(np.asarray(contour), img)
                 print("conotur result", result)
                 if (not result): # contour doesnt match
                     upload_image_to_database_log(img_for_upload, False, license_plate=plate)
