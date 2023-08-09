@@ -32,6 +32,7 @@ import re
 import cv2
 from live_stream import VideoApp
 import time
+import binascii
 import find_license_plate_id as numberplate
 import matching as shape
 import pickle
@@ -364,19 +365,20 @@ class App(customtkinter.CTk):
             # plate accepted and contour exists
             if(plate in self.plate_formats_contour):
                 index = self.plate_formats_contour.index(plate)
-                contour = self.image_datas_contour[index]
-                print(type(contour))
-                result = shape.compare_ContourImage(np.asarray(contour), img)
+                fetched_contour = self.image_datas_contour[index]
+                contour_pickle = binascii.unhexlify(fetched_contour)                
+                contour = pickle.loads(contour_pickle)
+                result = shape.compare_ContourImage(contour, img)
                 print("conotur result", result)
                 if (not result): # contour doesnt match
                     upload_image_to_database_log(img_for_upload, False, license_plate=plate)
                 else:
                     upload_image_to_database_log(img_for_upload, True, license_plate=plate)
             else: # save 
-                print("hallo", type(img))
+                print("saved", type(img))
                 shape.save_contour(img)
                 with open('contour.pkl', 'rb') as f:
-                    contour = pickle.load(f)
+                    contour = f.read()
                 upload_image_to_database_log(img_for_upload, True, license_plate=plate)
                 upload_image_to_database_contour(contour, plate)
              
