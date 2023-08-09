@@ -410,7 +410,7 @@ class App(customtkinter.CTk):
                 
                 self.button_accepted.append(customtkinter.CTkButton(master=self.scrollable_frame2,
                                                 width= 550,corner_radius=0,height=40 ,
-                                                text=str(self.timestamps_Accepted[i])+ " | " + str(self.plate_formats_Accepted[i])+ " | " + "ACCESS",
+                                                text=str(self.timestamps_Accepted[i])+ " | " + str(self.plate_formats_Accepted[i]),
                                                 border_width=1,
                                                 command=lambda index=i : change_delete_index(index)
                                                 ))
@@ -442,10 +442,11 @@ class App(customtkinter.CTk):
          # Create a Button for each image
          def load_Log(self):
              for i, image_id in enumerate(self.image_ids_Log):
-                
+                state="Access" if self.plate_access_Log[i] else "No Access" 
                 self.button_log.append(customtkinter.CTkButton(master=self.scrollable_frame,
                                                 width= 550,corner_radius=0,height=40 ,
-                                                text=str(self.timestamps_Log[i])+ " | " + str(self.plate_formats_Log[i])+ " | " + "NO ACCESS",border_width=1,
+                                                text=str(self.timestamps_Log[i])+ " | " + str(self.plate_formats_Log[i])+ " | " + str(state),
+                                                border_width=1,
                                                 command=lambda index=i: change_image(index)))
                 self.button_log[i].pack()
             
@@ -479,12 +480,13 @@ class App(customtkinter.CTk):
 
           
          def load_log_current(self, index):
-            plate_format = self.plate_formats_Log[index]
-            plate_access=self.plate_access_Log[index]
-            # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
-            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | {plate_access}"
+           
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
             # Anzahl der bereits akzeptierten Buttons
+            plate_format = self.plate_formats_Log[-1]
+            state="Access" if self.plate_access_Log[-1] else "No Access" 
+            # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
+            plate_text = f"{self.timestamps_Log[self.current_image_index]} | {plate_format} | {state}"
             current_Log_index = len(self.button_log)
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
@@ -549,6 +551,7 @@ class App(customtkinter.CTk):
            except Exception as e:
                 # Allgemeine Fehlermeldung ausgeben
                 print("Ein unerwarteter Fehler ist aufgetreten:", e)
+           load_log_current(self,self.current_image_index)
 
 
          def upload_image_to_database_contour(contour, license_plate):
