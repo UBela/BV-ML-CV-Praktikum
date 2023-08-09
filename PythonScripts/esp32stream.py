@@ -7,6 +7,8 @@ url = Cam2
 
 # Open the video stream
 cap = cv2.VideoCapture(url)
+cap.set(cv2.CAP_PROP_BUFFERSIZE, 3)
+print(cap.get(cv2.CAP_PROP_BUFFERSIZE))
 
 if not cap.isOpened():
     print("Failed to open the video stream!")

@@ -280,17 +280,17 @@ class App(customtkinter.CTk):
              self.bg_image_label.configure(image=self.bg_image)
              self.bg_image_label.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
              #photo.show()   
-             #  
+               
         
          
-         #self.vid = cv2.VideoCapture("http://192.168.178.68:81/stream")
+         camera_ip = "http://192.168.178.68:81/stream"
         
-         self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", 0 ,360, 240)
+         self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", camera_ip ,360, 240)
          def start_video(self):
              self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
              self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
              width, height = round(self.width*0.4),round(self.height*0.4)
-             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", 0 ,360, 240)
+             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", camera_ip ,360, 240)
              # cv2.imshow("Snapshot",self.video_app.current_frame_class)
     
         ### process for checking 

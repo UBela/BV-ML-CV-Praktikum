@@ -2,8 +2,8 @@ import cv2
 import time
 import os
 from datetime import datetime
-#IP_ADDRESS = "192.168.178.112"
-IP_ADDRESS = "172.20.10.3"
+IP_ADDRESS = "192.168.178.68"
+#IP_ADDRESS = "172.20.10.3"
 IMAGE_WIDTH = 1600
 IMAGE_HEIGHT = 1200
 
