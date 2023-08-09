@@ -347,6 +347,8 @@ class App(customtkinter.CTk):
        
             img_for_upload = img.tobytes()
             if (plate == "No License Plate Detected!" or plate == "License Plate Text not Detected!"):
+                self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (plate)
+                                          + "_______________________________________________________\n\n")
                 return
     
             # plate not accepted
@@ -355,6 +357,8 @@ class App(customtkinter.CTk):
             if(plate not in accepted_plates):
                 upload_image_to_database_log(img_for_upload, False, license_plate=plate)
                 print("not accepted plate")
+                self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (plate)
+                                          + "_______________________________________________________\n\n")
                 return
             # plate accepted and contour exists
             if(plate in self.plate_formats_contour):
@@ -483,6 +487,7 @@ class App(customtkinter.CTk):
            
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
             # Anzahl der bereits akzeptierten Buttons
+
             plate_format = self.plate_formats_Log[-1]
             state="Access" if self.plate_access_Log[-1] else "No Access" 
             # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
@@ -506,11 +511,11 @@ class App(customtkinter.CTk):
                 if(license_plate!=""):
                    if(is_valid_license_plate(license_plate)):
                       self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist gültig.\n" % (license_plate)
-                                          + "_______________________________________________________\n")
+                                          + "_______________________________________________________\n\n")
                       load_image_data_into_accepted_table(self,license_plate)
                    else: 
                       self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (license_plate)
-                                          + "_______________________________________________________\n")
+                                          + "_______________________________________________________\n\n")
                 self.textbox.configure(state="disabled")
                 start = self.textbox.index("end-1c linestart")
                 end = self.textbox.index("end-1c lineend")
@@ -551,6 +556,7 @@ class App(customtkinter.CTk):
            except Exception as e:
                 # Allgemeine Fehlermeldung ausgeben
                 print("Ein unerwarteter Fehler ist aufgetreten:", e)
+           self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()     
            load_log_current(self,self.current_image_index)
 
 
