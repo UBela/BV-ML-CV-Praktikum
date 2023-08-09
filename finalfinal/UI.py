@@ -317,10 +317,8 @@ class App(customtkinter.CTk):
              self.bg_image_label.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
              #photo.show()   
                
-        
-         
-         camera_ip = "http://192.168.178.68:81/stream"
-         #camera_ip = 0
+         #camera_ip = "http://192.168.178.68:81/stream"
+         camera_ip = 0
 
          self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", camera_ip ,360, 240)
          def start_video(self):
