@@ -6,7 +6,7 @@ import pickle
 
 
 def get_contours(image):
-
+    image = np.array(image)
     image = cv2.resize(image, (1000, 1000))
 
     # Initialize mask and rectangle

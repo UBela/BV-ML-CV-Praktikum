@@ -15,7 +15,8 @@ def __init__(self):
         )
     except psycopg2.Error as e:
                  print("Error connecting to the database:")
-                 print(e)    
+                 print(e) 
+import numpy as np   
 import tkinter as tk
 import tkinter.messagebox
 import customtkinter
@@ -312,27 +313,34 @@ class App(customtkinter.CTk):
 
             # get numberplate and corresponding image            
             plate, img = numberplate.process_license_plates(dir)
+       
+            img_for_upload = img.tobytes()
             if (plate == "No License Plate Detected!" or plate == "License Plate Text not Detected!"):
                 return
     
             # plate not accepted
-            if(plate not in self.plate_formats_Accepted):
-                upload_image_to_database_log(img, False, license_plate=plate)
+            accepted_plates = self.plate_formats_Accepted
+            accepted_plates = [plate.replace("-","") for plate in accepted_plates]
+            if(plate not in accepted_plates):
+                upload_image_to_database_log(img_for_upload, False, license_plate=plate)
+                print("not accepted plate")
                 return
             # plate accepted and contour exists
             if(plate in self.plate_formats_contour):
                 index = self.plate_formates_contour.index(plate)
                 contour = self.image_datas_contour[index]
                 result = shape.compare_ContourImage(contour, img)
+                print("conotur result", result)
                 if (not result): # contour doesnt match
-                    upload_image_to_database_log(img, False, license_plate=plate)
+                    upload_image_to_database_log(img_for_upload, False, license_plate=plate)
                 else:
-                    upload_image_to_database_log(img, True, license_plate=plate)
+                    upload_image_to_database_log(img_for_upload, True, license_plate=plate)
             else: # save 
+                print("hallo", type(img))
                 shape.save_contour(img)
                 with open('contour.pkl', 'rb') as f:
                     contour = pickle.load(f)
-                upload_image_to_database_log(img, True, license_plate=plate)
+                upload_image_to_database_log(img_for_upload, True, license_plate=plate)
                 upload_image_to_database_contour(contour, plate)
              
 
@@ -450,7 +458,6 @@ class App(customtkinter.CTk):
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
             set_delete_index_command = lambda idx=self.current_image_index: change_delete_index(idx)
-            print("test")
             self.button_log.insert(0, customtkinter.CTkButton(master=self.scrollable_frame,
                                     width= 550,corner_radius=0,height=40 ,
                                     text=plate_text,
@@ -494,7 +501,7 @@ class App(customtkinter.CTk):
 
 
             # Aktuelles Datum und Uhrzeit als Timestamp erhalten
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
             c.execute("""
@@ -502,8 +509,7 @@ class App(customtkinter.CTk):
             """, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
             conn.commit()
 
-            #print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
-            #print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
+            print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
    
 
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
@@ -521,11 +527,6 @@ class App(customtkinter.CTk):
                 INSERT INTO license_plates_and_images (image_data, plate_format) VALUES ( %s, %s);
             """, (psycopg2.Binary(contour), license_plate))
             conn.commit()
-
-            print(f"Datei '{os.path.basename(contour)}' erfolgreich hochgeladen.")
-            print(f"License Plate: {license_plate}")
-   
-
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
 
       def open_input_dialog_event(self):

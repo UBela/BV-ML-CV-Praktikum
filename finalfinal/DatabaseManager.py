@@ -10,15 +10,6 @@ from PIL import Image, ImageTk
 import psycopg2
 from io import BytesIO
 class DatabaseManager:
-        image_datas_Log_old=[]
-        image_ids_Log_old=[]
-        timestamps_Log_old=[]
-        plate_formats_Log_old=[]
-        image_ids_Accepted_old=[]
-        timestamps_Accepted_old=[]
-        plate_formats_Accepted_old=[]
-        plate_formats_contour=[]
-        plate_formats_contour=[]
         @staticmethod
         def retrieve_images_from_database():
                 try:
@@ -42,7 +33,8 @@ class DatabaseManager:
                     image_ids_Accepted=[]
                     timestamps_Accepted=[]
                     plate_formats_Accepted=[]
-
+                    plate_formats_contour=[]
+                    image_datas_contour=[]
 
                     for result in results:
                             image_id = result[0]
@@ -96,8 +88,7 @@ class DatabaseManager:
                     query = "SELECT id, image_data, plate_format FROM license_plates_and_images;"
                     c.execute(query)
                     results = c.fetchall()
-                    plate_formats_contour=[]
-                    image_datas_contour=[]
+                    
                     for result in results:
                                 image_data = result[1]
                                 plate_format = result[2]
