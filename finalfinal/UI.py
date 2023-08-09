@@ -33,6 +33,7 @@ from live_stream import VideoApp
 import time
 import find_license_plate_id as numberplate
 import matching as shape
+import pickle
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
@@ -294,18 +295,43 @@ class App(customtkinter.CTk):
     
         ### process for checking 
          def get_current_image(self):
+
+            # delete contents of folder
+            dir = "cam_frames"
+            if(len(os.listdir(dir)) > 0):
+                for f in os.listdir(dir):
+                    os.remove(os.path.join(dir, f))
+
+            # save 5 images in folder
             for e in range(5):
-                self.video_app.save(f"cam_frames/frame_{e}", "JPG")   
+                self.video_app.current_frame_class.save(f"cam_frames/frame_{e}", "JPG")   
 
-            
+            # get numberplate and corresponding image            
             plate, img = numberplate.find_license_plate_id("cam_frames/")
+            if (plate is "No License Plate Detected!" or plate is"License Plate Text not detected"):
+                upload_image_to_database_log(img, False, license_plate=plate)
 
-            if(plate in self.plates_format_accepted):
-
-                #shape.compare_ContourImage(,img)
+            # plate not accepted
+            if(plate not in self.plates_format_accepted):
+                upload_image_to_database_log(img, False, license_plate=plate)
                 return
-            
-        
+            # plate accepted and contour exists
+            if(plate in self.plate_formats_contour):
+                index = self.plate_formates_contour.index(plate)
+                contour = self.image_datas_contour[index]
+                result = shape.compare_ContourImage(contour, img)
+                if (not result): # contour doesnt match
+                    upload_image_to_database_log(img, False, license_plate=plate)
+                else:
+                    upload_image_to_database_log(img, True, license_plate=plate)
+            else: # save 
+                shape.save_contour(img)
+                with open('contour.pkl', 'rb') as f:
+                    contour = pickle.load(f)
+                upload_image_to_database_log(img, True, license_plate=plate)
+                upload_image_to_database_contour(contour, plate)
+             
+
         
 
          def change_delete_index(index):
@@ -457,12 +483,9 @@ class App(customtkinter.CTk):
                 return False
           
 
-         def upload_image_to_database_log(image_path, is_allowed, license_plate):
+         def upload_image_to_database_log(image, is_allowed, license_plate):
             # Verbindung zur Datenbank herstellen
-   
-            
-            with open(image_path, 'rb') as file:
-                image_data = file.read()
+
 
             # Aktuelles Datum und Uhrzeit als Timestamp erhalten
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -470,7 +493,7 @@ class App(customtkinter.CTk):
             # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
             c.execute("""
                 INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) VALUES (%s, %s, %s, %s);
-            """, (psycopg2.Binary(image_data), timestamp, license_plate, is_allowed))
+            """, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
             conn.commit()
 
             #print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
@@ -481,12 +504,8 @@ class App(customtkinter.CTk):
             load_Accepted_current(self,self.current_image_index)
 
 
-         def upload_image_to_database_contour(image_path, license_plate):
-            # Verbindung zur Datenbank herstellen
-   
+         def upload_image_to_database_contour(contour, license_plate):
             
-            with open(image_path, 'rb') as file:
-                image_data = file.read()
 
             # Aktuelles Datum und Uhrzeit als Timestamp erhalten
             
@@ -494,10 +513,10 @@ class App(customtkinter.CTk):
             # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
             c.execute("""
                 INSERT INTO license_plates_and_images (image_data, plate_format) VALUES ( %s, %s);
-            """, (psycopg2.Binary(image_data), license_plate))
+            """, (psycopg2.Binary(contour), license_plate))
             conn.commit()
 
-            print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
+            print(f"Datei '{os.path.basename(contour)}' erfolgreich hochgeladen.")
             print(f"License Plate: {license_plate}")
    
 

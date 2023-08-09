@@ -87,7 +87,7 @@ def save_contour(img):
     contour = max(contours, key=cv2.contourArea)
 
     # Save contour to a file
-    with open('reference_contour.pkl', 'wb') as f:
+    with open('contour.pkl', 'wb') as f:
         pickle.dump(contour, f)
 
 def compare_ContourImage(contour,image):

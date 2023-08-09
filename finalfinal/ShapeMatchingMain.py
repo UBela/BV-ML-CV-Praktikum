@@ -3,8 +3,8 @@ import pickle
 import cv2
 import customtkinter
 
-image_path1 = "PythonScripts\cam_frames\image_11.JPG"
-image_path2 = "PythonScripts\cam_frames\image_9.JPG"
+image_path1 = "finalfinal/test images 5.8/SHGLF206/sharp/test (1).jpg"
+image_path2 = "finalfinal/test images 5.8/SHGLF206/sharp/test (2).jpg"
 
 image1 = cv2.imread(image_path1, cv2.IMREAD_UNCHANGED)
 image2 = cv2.imread(image_path2, cv2.IMREAD_UNCHANGED)
