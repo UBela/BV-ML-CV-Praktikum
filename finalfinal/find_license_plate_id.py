@@ -31,10 +31,11 @@ def process_license_plates(path_to_cam_frames):
     all_lp_ids= list(map(find_license_plate_id, img_files))
     all_lp_ids = np.array(all_lp_ids).flatten().tolist()
     predicted_license_plate_id = max(set(all_lp_ids), key=all_lp_ids.count)
-    predicted_license_plate_id = predicted_license_plate_id.replace(" ","")
+    if predicted_license_plate_id != "No License Plate Detected!" and predicted_license_plate_id != "License Plate Text not Detected!":
+        predicted_license_plate_id = predicted_license_plate_id.replace(" ","")
     with open(img_files[0], 'rb') as img_file:
         image_data = img_file.read()
-    
+    print(predicted_license_plate_id)
     return predicted_license_plate_id, image_data    
 
 #crop the license plate and save as image
@@ -45,6 +46,9 @@ def detect_license_plate(img, yolo_model, save_img=True):
     detected_lps = yolo_model.predict(img, verbose=False)[0]
     license_plates = []
     
+    detected_bbs = detected_lps.boxes.data.tolist()
+    if not detected_bbs:
+        return None
     for lp in detected_lps.boxes.data.tolist():
         
         x1, y1, x2, y2, conf, _ = lp
@@ -123,9 +127,9 @@ def find_license_plate_id(img_file):
     lp_text = reader.readtext(pre_processed, allowlist= pattern,detail=0,paragraph=True)
     if lp_text:
         return lp_text
-    return "License Plate Text not detected"
+    return "License Plate Text not Detected!"
 
 if __name__ == '__main__':
-    path_to_cam_frames = 'finalfinal/test images 5.8/SHGLF206/sharp'
+    path_to_cam_frames = 'finalfinal/cam_frames'
     id, img = process_license_plates(path_to_cam_frames)
     print(id)

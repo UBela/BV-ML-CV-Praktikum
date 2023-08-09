@@ -285,34 +285,35 @@ class App(customtkinter.CTk):
          
          #self.vid = cv2.VideoCapture("http://192.168.178.68:81/stream")
         
-         self.video_app=None
+         self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", 0 ,360, 240)
          def start_video(self):
              self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
              self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
              width, height = round(self.width*0.4),round(self.height*0.4)
-             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", "http://192.168.178.68:81/stream" ,360, 240)
+             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", 0 ,360, 240)
              # cv2.imshow("Snapshot",self.video_app.current_frame_class)
     
         ### process for checking 
          def get_current_image(self):
 
             # delete contents of folder
-            dir = "cam_frames"
+            dir = "finalfinal/cam_frames"
             if(len(os.listdir(dir)) > 0):
                 for f in os.listdir(dir):
                     os.remove(os.path.join(dir, f))
 
             # save 5 images in folder
-            for e in range(5):
-                self.video_app.current_frame_class.save(f"cam_frames/frame_{e}", "JPG")   
+            for i in range(5):
+                frame = Image.fromarray(self.video_app.current_frame_class)
+                frame.save(f"{dir}/frame_{i}.jpg")
 
             # get numberplate and corresponding image            
-            plate, img = numberplate.find_license_plate_id("cam_frames/")
-            if (plate is "No License Plate Detected!" or plate is"License Plate Text not detected"):
-                upload_image_to_database_log(img, False, license_plate=plate)
-
+            plate, img = numberplate.process_license_plates(dir)
+            if (plate == "No License Plate Detected!" or plate == "License Plate Text not Detected!"):
+                return
+    
             # plate not accepted
-            if(plate not in self.plates_format_accepted):
+            if(plate not in self.plate_formats_Accepted):
                 upload_image_to_database_log(img, False, license_plate=plate)
                 return
             # plate accepted and contour exists
@@ -492,7 +493,7 @@ class App(customtkinter.CTk):
 
             # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
             c.execute("""
-                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) VALUES (%s, %s, %s, %s);
+                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, access) VALUES (%s, %s, %s, %s);
             """, (psycopg2.Binary(image), timestamp, license_plate, is_allowed))
             conn.commit()
 
