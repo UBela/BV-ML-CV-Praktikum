@@ -6,8 +6,12 @@ import pickle
 
 
 def get_contours(image):
-    image = np.array(image)
-    image = cv2.resize(image, (1000, 1000))
+    # Convert image data to numpy array
+    image_np = np.frombuffer(image, dtype=np.uint8)
+
+# Decode the image using OpenCV
+    image_cv2 = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+    image = cv2.resize(image_cv2, (1000, 1000))
 
     # Initialize mask and rectangle
     mask = np.zeros(image.shape[:2], np.uint8)

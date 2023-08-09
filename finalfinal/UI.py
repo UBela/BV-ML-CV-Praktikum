@@ -314,7 +314,7 @@ class App(customtkinter.CTk):
             # get numberplate and corresponding image            
             plate, img = numberplate.process_license_plates(dir)
        
-            img_for_upload = img.tobytes()
+            img_for_upload = img
             if (plate == "No License Plate Detected!" or plate == "License Plate Text not Detected!"):
                 return
     

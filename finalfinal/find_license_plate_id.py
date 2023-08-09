@@ -33,7 +33,8 @@ def process_license_plates(path_to_cam_frames):
     predicted_license_plate_id = max(set(all_lp_ids), key=all_lp_ids.count)
     if predicted_license_plate_id != "No License Plate Detected!" and predicted_license_plate_id != "License Plate Text not Detected!":
         predicted_license_plate_id = predicted_license_plate_id.replace(" ","")
-    image_data = Image.open(img_files[0])
+    with open(img_files[0], 'rb') as img_file:
+        image_data = img_file.read()
     print(predicted_license_plate_id)
     return predicted_license_plate_id, image_data    
 
