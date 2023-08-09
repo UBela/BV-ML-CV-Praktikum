@@ -1,21 +1,3 @@
-def __init__(self):
-    # ... other initialization code ...
-    self.host = "snuffleupagus.db.elephantsql.com"
-    self.port = "5432"
-    self.database = "lvyoqndm"
-    self.user = "lvyoqndm"
-    self.password = "X8HtTPeJRhM89GYr8s36GrBnp5aOI9P2"
-    try:
-        self.conn = psycopg2.connect(
-            host=self.host,
-            port=self.port,
-            database=self.database,
-            user=self.user,
-            password=self.password
-        )
-    except psycopg2.Error as e:
-                 print("Error connecting to the database:")
-                 print(e) 
 import numpy as np   
 import tkinter as tk
 import tkinter.messagebox
@@ -56,27 +38,9 @@ except psycopg2.Error as e:
                  print("Error connecting to the database:")
                  print(e)
 c = conn.cursor()
+
 class App(customtkinter.CTk):
-      
-      def upload_image_to_database(image_path, is_allowed, license_plate):
-            # Verbindung zur Datenbank herstellen
-   
-            print("funktion wird ausgeführt")
-            with open(image_path, 'rb') as file:
-                image_data = file.read()
 
-            # Aktuelles Datum und Uhrzeit als Timestamp erhalten
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            # Bild in die Datenbank laden und Timestamp sowie license_plate und is_allowed hinzufügen
-            
-            c.execute("""
-                INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, is_allowed) VALUES (%s, %s, %s, %s);
-            """, (psycopg2.Binary(image_data), timestamp, license_plate, is_allowed))
-            conn.commit()
-
-            #print(f"Datei '{os.path.basename(image_path)}' erfolgreich hochgeladen.")
-            #print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
       def __init__(self):
          super().__init__()
          self.width = 900
@@ -104,9 +68,6 @@ class App(customtkinter.CTk):
          self.textbox.configure(state="disabled")
          
          self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
-         #print(self.image_ids_Accepted)
-         #print(self.timestamps_Accepted)
-         #print(self.plate_formats_Accepted)
         
          self.title("Praktikum UI")
          self.geometry(f"{1100}x{580}")
