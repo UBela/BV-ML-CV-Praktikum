@@ -32,6 +32,7 @@ import re
 import cv2
 from live_stream import VideoApp
 import time
+import binascii
 import find_license_plate_id as numberplate
 import matching as shape
 import pickle
@@ -317,16 +318,22 @@ class App(customtkinter.CTk):
              self.bg_image_label.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
              #photo.show()   
                
-         #camera_ip = "http://192.168.178.68:81/stream"
-         camera_ip = 0
+        
+         
+         camera_ip = "http://192.168.178.68:81/stream"
+         #camera_ip = 0
 
-         self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", camera_ip ,360, 240)
+         self.video_app=VideoApp(self,"Live Video Feed", camera_ip)
          def start_video(self):
-             self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
-             self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
-             width, height = round(self.width*0.4),round(self.height*0.4)
-             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", camera_ip ,360, 240)
-             # cv2.imshow("Snapshot",self.video_app.current_frame_class)
+             if not self.video_app:
+                self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
+                self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
+                width, height = round(self.width*0.4),round(self.height*0.4)
+                self.video_app=VideoApp(self,"Live Video Feed", camera_ip)  
+             else:
+                 print("Live Video Feed is already active")
+                 
+         print(self.plate_formats_contour)
     
         ### process for checking 
          def get_current_image(self):
@@ -347,8 +354,6 @@ class App(customtkinter.CTk):
        
             img_for_upload = img.tobytes()
             if (plate == "No License Plate Detected!" or plate == "License Plate Text not Detected!"):
-                self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (plate)
-                                          + "_______________________________________________________\n\n")
                 return
     
             # plate not accepted
@@ -357,13 +362,13 @@ class App(customtkinter.CTk):
             if(plate not in accepted_plates):
                 upload_image_to_database_log(img_for_upload, False, license_plate=plate)
                 print("not accepted plate")
-                self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (plate)
-                                          + "_______________________________________________________\n\n")
                 return
             # plate accepted and contour exists
             if(plate in self.plate_formats_contour):
-                index = self.plate_formates_contour.index(plate)
-                contour = self.image_datas_contour[index]
+                index = self.plate_formats_contour.index(plate)
+                fetched_contour = self.image_datas_contour[index]
+                contour_pickle = binascii.unhexlify(fetched_contour)                
+                contour = pickle.loads(contour_pickle)
                 result = shape.compare_ContourImage(contour, img)
                 print("conotur result", result)
                 if (not result): # contour doesnt match
@@ -371,10 +376,10 @@ class App(customtkinter.CTk):
                 else:
                     upload_image_to_database_log(img_for_upload, True, license_plate=plate)
             else: # save 
-                print("hallo", type(img))
+                print("saved", type(img))
                 shape.save_contour(img)
                 with open('contour.pkl', 'rb') as f:
-                    contour = pickle.load(f)
+                    contour = f.read()
                 upload_image_to_database_log(img_for_upload, True, license_plate=plate)
                 upload_image_to_database_contour(contour, plate)
              
@@ -414,7 +419,7 @@ class App(customtkinter.CTk):
                 
                 self.button_accepted.append(customtkinter.CTkButton(master=self.scrollable_frame2,
                                                 width= 550,corner_radius=0,height=40 ,
-                                                text=str(self.timestamps_Accepted[i])+ " | " + str(self.plate_formats_Accepted[i]),
+                                                text=str(self.timestamps_Accepted[i])+ " | " + str(self.plate_formats_Accepted[i])+ " | " + "ACCESS",
                                                 border_width=1,
                                                 command=lambda index=i : change_delete_index(index)
                                                 ))
@@ -446,11 +451,10 @@ class App(customtkinter.CTk):
          # Create a Button for each image
          def load_Log(self):
              for i, image_id in enumerate(self.image_ids_Log):
-                state="Access" if self.plate_access_Log[i] else "No Access" 
+                
                 self.button_log.append(customtkinter.CTkButton(master=self.scrollable_frame,
                                                 width= 550,corner_radius=0,height=40 ,
-                                                text=str(self.timestamps_Log[i])+ " | " + str(self.plate_formats_Log[i])+ " | " + str(state),
-                                                border_width=1,
+                                                text=str(self.timestamps_Log[i])+ " | " + str(self.plate_formats_Log[i])+ " | " + "NO ACCESS",border_width=1,
                                                 command=lambda index=i: change_image(index)))
                 self.button_log[i].pack()
             
@@ -486,6 +490,7 @@ class App(customtkinter.CTk):
          def load_log_current(self, index):
            
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
+            
             # Anzahl der bereits akzeptierten Buttons
 
             plate_format = self.plate_formats_Log[-1]
@@ -511,11 +516,11 @@ class App(customtkinter.CTk):
                 if(license_plate!=""):
                    if(is_valid_license_plate(license_plate)):
                       self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist gültig.\n" % (license_plate)
-                                          + "_______________________________________________________\n\n")
+                                          + "_______________________________________________________\n")
                       load_image_data_into_accepted_table(self,license_plate)
                    else: 
                       self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (license_plate)
-                                          + "_______________________________________________________\n\n")
+                                          + "_______________________________________________________\n")
                 self.textbox.configure(state="disabled")
                 start = self.textbox.index("end-1c linestart")
                 end = self.textbox.index("end-1c lineend")
@@ -539,21 +544,30 @@ class App(customtkinter.CTk):
 
            try:
                 # Aktuelles Datum und Uhrzeit als Timestamp erhalten
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-                # Bild in die Datenbank laden und Timestamp sowie plate_format hinzufügen
-                c.execute("""
-                    INSERT INTO license_plates_access_log (image_data, timestamp, plate_format, access) VALUES (%s,%s, %s, %s);
-                """, (psycopg2.Binary(image), timestamp, license_plate,is_allowed))
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                query = """
+                     INSERT INTO license_plates_access_accepted ( timestamp, plate_format)
+                     VALUES ( %s, %s);
+                     """
+                c.execute(query, (  timestamp,license_plate))
                 conn.commit()
 
-               
-                print(f"Datei '{1}' erfolgreich hochgeladen. Standard-Kennzeichen: {license_plate}")
-           except psycopg2.Error as e:
-            print(f"Fehler beim Hochladen der Datei")
-           self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()     
-           load_log_current(self,self.current_image_index)
+                c.execute("""
+                    INSERT INTO license_plates_access_log ( timestamp, plate_format) 
+                    VALUES (%s, %s);
+                """, ( timestamp, license_plate))
+                conn.commit()
+                print(f"License Plate: {license_plate}, Zugelassen: {is_allowed}")
 
+           except psycopg2.DatabaseError as e:
+                # Fehlermeldung ausgeben, wenn ein Datenbankfehler auftritt
+                print("Datenbankfehler:", e)
+            
+           except Exception as e:
+                # Allgemeine Fehlermeldung ausgeben
+                print("Ein unerwarteter Fehler ist aufgetreten:", e)
+
+           load_log_current(self,self.current_image_index)
 
          def upload_image_to_database_contour(contour, license_plate):
             

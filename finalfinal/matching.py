@@ -2,6 +2,7 @@ import cv2
 import numpy as np;
 import timeit;
 import pickle
+import binascii
 
 
 
@@ -83,12 +84,16 @@ def compare_contours():
 
 def save_contour(img):
     contours, _ = get_contours(img)
+    print("reached contours")
     # Find the largest contour in the image
     contour = max(contours, key=cv2.contourArea)
+    
+    contour_pickled = pickle.dumps(contour)
 
+    contour_hex = binascii.hexlify(contour_pickled)
     # Save contour to a file
     with open('contour.pkl', 'wb') as f:
-        pickle.dump(contour, f)
+        f.write(contour_hex)
 
 def compare_ContourImage(contour,image):
 
