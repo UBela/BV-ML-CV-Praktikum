@@ -284,16 +284,16 @@ class App(customtkinter.CTk):
              #photo.show()   
                
         
-         
-         camera_ip = "http://192.168.178.68:81/stream"
-         #camera_ip = 0
+         width, height = round(self.width * 0.4),round(self.height * 0.4)
+         #camera_ip = "http://192.168.178.68:81/stream"
+         camera_ip = 0
 
-         self.video_app=VideoApp(self,"Live Video Feed", camera_ip)
+         self.video_app=VideoApp(self,"Live Video Feed", camera_ip, width, height)
          def start_video(self):
              if not self.video_app:
-                self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
+                self.canvas = tk.Canvas(self, width,height)
                 self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
-                width, height = round(self.width*0.4),round(self.height*0.4)
+                
                 self.video_app=VideoApp(self,"Live Video Feed", camera_ip)  
              else:
                  print("Live Video Feed is already active")
@@ -366,7 +366,7 @@ class App(customtkinter.CTk):
              print("Before:", self.current_image_index )
              self.current_delete_image_index = -1
              self.current_image_index = index
-             print("Before:", self.current_image_index )
+             print("After:", self.current_image_index )
              if(self.current_delete_image_index == -1): 
                 self.sidebar_button_1.configure(fg_color="grey",hover="false",state="disabled")
              if(self.current_image_index != -1): 
@@ -457,10 +457,10 @@ class App(customtkinter.CTk):
          def load_log_current(self):
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
             # Anzahl der bereits akzeptierten Buttons
-            current_Log_index = -1
-            plate_format = self.plate_formats_Log[current_Log_index]
-            access="Access" if self.plate_access_Log[current_Log_index] else "No Access" 
-            timestamp=self.timestamps_Log[current_Log_index]
+            current_Log_index = len(self.button_log)
+            plate_format = self.plate_formats_Log[-1]
+            access="Access" if self.plate_access_Log[-1] else "No Access" 
+            timestamp=self.timestamps_Log[-1]
             # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
             plate_text = f"{timestamp} | {plate_format} | {access}"            
             
