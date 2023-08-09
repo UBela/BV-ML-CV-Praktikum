@@ -31,6 +31,8 @@ import re
 import cv2
 from live_stream import VideoApp
 import time
+import find_license_plate_id as numberplate
+import matching as shape
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
@@ -257,7 +259,7 @@ class App(customtkinter.CTk):
 
              return image_with_rounded_edges
         
-         image = Image.open("C:/Users/raoul/Downloads/BV-ML-CV-Praktikum/TestImagesSet1/image_1.jpg")
+         image = Image.open("TestImagesSet1\image_1.jpg")
          # Convert the original image to PhotoImage using ImageTk
          #photo = ImageTk.PhotoImage(image_with_rounded_edges)
          self.bg_image = customtkinter.CTkImage(apply_rounded_edges(image),
@@ -278,21 +280,28 @@ class App(customtkinter.CTk):
              #  
         
          
-         self.vid = cv2.VideoCapture(0)
+         #self.vid = cv2.VideoCapture("http://192.168.178.68:81/stream")
         
          self.video_app=None
          def start_video(self):
              self.canvas = tk.Canvas(self, width=self.width*0.4, height=self.height*0.4)
              self.canvas.grid(row=0, column=1,padx=(20, 0), pady=(20, 0))
              width, height = round(self.width*0.4),round(self.height*0.4)
-             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", 0 ,width, height)
-             #cv2.imshow("Snapshot",self.video_app.current_frame_class)
+             self.video_app=VideoApp(self,self.sidebar_frame, "Live Video Feed", "http://192.168.178.68:81/stream" ,360, 240)
+             # cv2.imshow("Snapshot",self.video_app.current_frame_class)
     
+        ### process for checking 
          def get_current_image(self):
-             #for _ in range(5):
-                cv2.imshow("Snapshot", self.video_app.current_frame_class)
-               #cv2.waitKey(1)  # Damit das Bild-Fenster aktualisiert wird
-               # ime.sleep(1)   # Wartet für 1 Sekunde
+            for e in range(5):
+                self.video_app.save(f"cam_frames/frame_{e}", "JPG")   
+
+            
+            plate, img = numberplate.find_license_plate_id("cam_frames/")
+
+            if(plate in self.plates_format_accepted):
+
+                #shape.compare_ContourImage(,img)
+                return
             
         
         

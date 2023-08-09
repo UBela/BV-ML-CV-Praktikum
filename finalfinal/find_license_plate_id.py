@@ -3,12 +3,15 @@ from ultralytics import YOLO
 import numpy as np
 import os
 import cv2
-import pytesseract
+# import pytesseract
 import torch
 from PIL import Image
 import imutils
 import easyocr
+import torchvision
 
+print(torch.__version__)
+print(torchvision.__version__)
 
 #pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 # ocr reader
@@ -16,7 +19,7 @@ reader = easyocr.Reader(['de'])
 pattern = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ÜÖ'
 
 # trained yolo model
-lp_detect_model = YOLO('yolo_model/best.pt')
+lp_detect_model = YOLO("finalfinal/yolo_model/best.pt")
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 lp_detect_model.to(device)
 
@@ -55,15 +58,6 @@ def detect_license_plate(img, yolo_model, save_img=True):
         
         cv2.imwrite(f'cropped_license_plates/cropped_{img_name}', license_plates[0])    
     return license_plates[0]
-
-def ocr(image):
-
-    custom_config = r'--psm 6 --oem 3 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZÖ0123456789'
-    text = pytesseract.image_to_string(image, lang='deu', config=custom_config)
-    if text:
-
-        return text.strip("\n")
-    return "not detected"
 
 def apply_image_processing(img):
     kernel = np.ones((3,3),np.uint8) #1
@@ -132,6 +126,6 @@ def find_license_plate_id(img_file):
     return "License Plate Text not detected"
 
 if __name__ == '__main__':
-    path_to_cam_frames = 'test images 5.8/SHGLF206/sharp'
+    path_to_cam_frames = 'finalfinal/test images 5.8/SHGLF206/sharp'
     id, img = process_license_plates(path_to_cam_frames)
     print(id)

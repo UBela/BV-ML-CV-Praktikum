@@ -61,8 +61,8 @@ class VideoApp:
             self.vid.release()
 
 # Change the video_source to a specific video file or 0 for the default camera
-video_source = 0
+video_source = "http://192.168.178.68:81/stream"
 
 root = tk.Tk()
 app = VideoApp(root,root,  "Live Video Feed", video_source)
-root.mainloop()
+root.mainloop() 
