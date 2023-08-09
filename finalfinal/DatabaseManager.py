@@ -36,7 +36,7 @@ class DatabaseManager:
                     plate_formats_contour=[]
                     image_datas_contour=[]
 
-                    print(results)
+                    print(results)                    
 
                     for result in results:
                             image_id = result[0]

@@ -40,6 +40,8 @@ except psycopg2.Error as e:
 c = conn.cursor()
 
 class App(customtkinter.CTk):
+      
+
 
       def __init__(self):
          super().__init__()
@@ -61,7 +63,7 @@ class App(customtkinter.CTk):
          self.button_log=[]
          self.plate_formats_contour=[]
          self.image_datas_contour=[]
-
+         self.currentFrame = None
          
          self.textbox = customtkinter.CTkTextbox(self,width=500,height=200)
          self.textbox.grid(row=1, column=1, padx=(20, 0), pady=(20, 0))  
@@ -76,6 +78,8 @@ class App(customtkinter.CTk):
          self.grid_columnconfigure(1, weight=1)
          self.grid_columnconfigure((2, 3), weight=0)
          self.grid_rowconfigure((0, 1, 2), weight=1)
+
+         
          #################################################################################
         
          def load_image_data_into_accepted_table(self):
@@ -311,9 +315,10 @@ class App(customtkinter.CTk):
                 frame.save(f"{dir}/frame_{i}.jpg")
 
             # get numberplate and corresponding image            
-            plate, img = numberplate.process_license_plates(dir)
-       
-            img_for_upload = img.tobytes()
+            plate, img = numberplate.process_license_plates(dir)                    
+
+            img_for_upload = open("finalfinal/cam_frames/frame_0.jpg", 'rb').read()
+
             if (plate == "No License Plate Detected!" or plate == "License Plate Text not Detected!"):
                 return
     
@@ -457,7 +462,7 @@ class App(customtkinter.CTk):
             access="Access" if self.plate_access_Log[current_Log_index] else "No Access" 
             timestamp=self.timestamps_Log[current_Log_index]
             # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
-            plate_text = f"{self.timestamps_Log[timestamp]} | {plate_format} | {access}"            
+            plate_text = f"{timestamp} | {plate_format} | {access}"            
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
             set_delete_index_command = lambda idx=current_Log_index: change_image(idx)
@@ -501,8 +506,8 @@ class App(customtkinter.CTk):
                 return False
           
 
-         def upload_image_to_database_log(image, is_allowed, license_plate):
-
+         def upload_image_to_database_log(image, is_allowed, license_plate):                      
+           #cv2.imshow("test",image)
            try:
                 # Aktuelles Datum und Uhrzeit als Timestamp erhalten
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
