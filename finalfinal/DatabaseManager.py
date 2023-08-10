@@ -86,8 +86,6 @@ class DatabaseManager:
                                 plate_formats_Accepted.append(plate_format)
                             except Exception as e:
                                 print(f"Error displaying the image: {e}")       
-                    print(image_ids_Accepted)
-                    print(image_ids_Log)
 
                     query = "SELECT id, image_data, plate_format FROM license_plates_and_images;"
                     c.execute(query)
@@ -110,8 +108,6 @@ class DatabaseManager:
                 except psycopg2.Error as e:
                     print("Error connecting to the database:")
                     print(e)        
-                print("datenbanken wurden Aktualisiert")
-                print("Plate_formats_log",  plate_formats_Log)
                 return image_datas_Log,image_ids_Log,timestamps_Log,plate_formats_Log,image_ids_Accepted,timestamps_Accepted,plate_formats_Accepted,plate_formats_contour,image_datas_contour,plate_access_Log
         
         

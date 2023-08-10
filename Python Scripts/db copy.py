@@ -84,6 +84,7 @@ c.execute("""
 
 c.execute("DELETE FROM license_plates_access_log;")
 c.execute("DELETE FROM license_plates_access_accepted;")
+c.execute("DELETE FROM license_plates_and_images;")
 print("Daten werden bei jedem Aufruf gelöscht")
 conn.commit()
 
@@ -136,7 +137,7 @@ def upload_images_to_database(image_dir):
     print(f"Gesamtanzahl der erfolgreich hochgeladenen Dateien: {success_count}")
 
 # Bilder in die Datenbank hochladen
-upload_images_to_database("TestImagesSet1")
+#upload_images_to_database("TestImagesSet1")
 
 
 c.close()

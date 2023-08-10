@@ -112,7 +112,6 @@ class App(customtkinter.CTk):
                      self.textbox.insert(END,f"'{plate_format}' loaded into accepted table.\n"
                                          + "_______________________________________________________\n\n")
                      load_Accepted_current(self,self.current_image_index)
-                     print(str(self.current_image_index) + "wurde hochgeladen" )   
                  self.textbox.configure(state="disabled") 
                  self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
                  self.current_image_index = -1
@@ -304,7 +303,7 @@ class App(customtkinter.CTk):
     
         ### process for checking 
          def get_current_image(self):
-
+            self.textbox.configure(state="normal") 
             # delete contents of folder
             dir = "finalfinal/cam_frames"
             if(len(os.listdir(dir)) > 0):
@@ -322,6 +321,8 @@ class App(customtkinter.CTk):
             img_for_upload = open("finalfinal/cam_frames/frame_0.jpg", 'rb').read()
 
             if (plate == "No License Plate Detected!" or plate == "License Plate Text not Detected!"):
+                self.textbox.insert(END,f"'{plate}': not accepted plate.\n"
+                                         + "_______________________________________________________\n\n")
                 return
     
             # plate not accepted
@@ -329,7 +330,8 @@ class App(customtkinter.CTk):
             accepted_plates = [plate.replace("-","") for plate in accepted_plates]
             if(plate not in accepted_plates):
                 upload_image_to_database_log(img_for_upload, False, license_plate=plate)
-                print("not accepted plate")
+                self.textbox.insert(END,f"'{plate}': not accepted plate.\n"
+                                         + "_______________________________________________________\n\n")
                 return
             # plate accepted and contour exists
             if(plate in self.plate_formats_contour):
@@ -350,25 +352,21 @@ class App(customtkinter.CTk):
                     contour = f.read()
                 upload_image_to_database_log(img_for_upload, True, license_plate=plate)
                 upload_image_to_database_contour(contour, plate)
-             
+            self.textbox.configure(state="disabled")
 
         
 
          def change_delete_index(index):
-             print("Before:", self.current_delete_image_index)
              self.current_delete_image_index=index
              self.current_image_index = -1
-             print("After:", self.current_delete_image_index)
              if(self.current_delete_image_index != -1): 
                 self.sidebar_button_1.configure(fg_color=['#3a7ebf', '#1f538d'],hover="true",state="normal")
              if(self.current_image_index == -1): 
                 self.sidebar_button_2.configure(fg_color="grey",hover="false",state="disabled")
             
          def change_image(index):             
-             print("Before:", self.current_image_index )
              self.current_delete_image_index = -1
              self.current_image_index = index
-             print("After:", self.current_image_index )
              if(self.current_delete_image_index == -1): 
                 self.sidebar_button_1.configure(fg_color="grey",hover="false",state="disabled")
              if(self.current_image_index != -1): 
@@ -385,10 +383,12 @@ class App(customtkinter.CTk):
          def load_Accepted_all(self):
             
             for i, image_id in enumerate(self.plate_formats_Accepted):
-                
+                plate_format = self.plate_formats_Accepted[i]
+                timestamp=self.timestamps_Accepted[i]
+                plate_text = f"{timestamp}  | {plate_format} "
                 self.button_accepted.append(customtkinter.CTkButton(master=self.scrollable_frame2,
                                                 width= 550,corner_radius=0,height=40 ,
-                                                text=str(self.timestamps_Accepted[i])+ " | " + str(self.plate_formats_Accepted[i])+ " | " + "ACCESS",
+                                                text=plate_text,
                                                 border_width=1,
                                                 command=lambda index=i : change_delete_index(index)
                                                 ))
@@ -420,12 +420,16 @@ class App(customtkinter.CTk):
          # Create a Button for each image
          def load_Log(self):
              for i, image_id in enumerate(self.image_ids_Log):
-                
-                self.button_log.append(customtkinter.CTkButton(master=self.scrollable_frame,
+                 plate_format = self.plate_formats_Log[i]
+                 access="Access" if self.plate_formats_Log[i] else "No Access" 
+                 timestamp=self.timestamps_Log[i]
+                 plate_text = f"{timestamp} | {plate_format} | {access}"  
+                 self.button_log.append(customtkinter.CTkButton(master=self.scrollable_frame,
                                                 width= 550,corner_radius=0,height=40 ,
-                                                text=str(self.timestamps_Log[i])+ " | " + str(self.plate_formats_Log[i])+ " | " + "NO ACCESS",border_width=1,
+                                                text=plate_text,
+                                                border_width=1,
                                                 command=lambda index=i: change_image(index)))
-                self.button_log[i].pack()
+                 self.button_log[i].pack()
             
          load_Log(self)
             #   for i, image_id in enumerate(self.image_ids_Log):
@@ -440,7 +444,8 @@ class App(customtkinter.CTk):
             # Füge den Button mit dem aktuellen Kennzeichen zum Pack hinzu
             self.image_datas_Log,self.image_ids_Log,self.timestamps_Log,self.plate_formats_Log,self.image_ids_Accepted,self.timestamps_Accepted,self.plate_formats_Accepted,self.plate_formats_contour,self.image_datas_contour,self.plate_access_Log  = DatabaseManager.retrieve_images_from_database()
             plate_format = self.plate_formats_Accepted[-1]
-            plate_text = f"{self.timestamps_Accepted[-1]} | {plate_format} "
+            timestamp=self.timestamps_Accepted[-1]
+            plate_text = f"{timestamp}  | {plate_format} "
             # Anzahl der bereits akzeptierten Buttons
             current_accepted_index = len(self.button_accepted)
             
@@ -468,7 +473,7 @@ class App(customtkinter.CTk):
             
             # Lambda-Funktion, die self.current_delete_image_index auf den aktuellen Index setzt
             set_delete_index_command = lambda idx=current_Log_index: change_image(idx)
-            print(current_Log_index)
+
             self.button_log.append( customtkinter.CTkButton(master=self.scrollable_frame,
                                     width= 550,corner_radius=0,height=40 ,
                                     text=plate_text,
@@ -484,11 +489,11 @@ class App(customtkinter.CTk):
                 if(license_plate!=""):
                    if(is_valid_license_plate(license_plate)):
                       self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist gültig.\n" % (license_plate)
-                                          + "_______________________________________________________\n")
+                                          + "_______________________________________________________\n\n")
                       load_image_data_into_accepted_table(self,license_plate)
                    else: 
                       self.textbox.insert(END,"Das eingegebene Kennzeichen %s ist ungültig.\n" % (license_plate)
-                                          + "_______________________________________________________\n")
+                                          + "_______________________________________________________\n\n")
                 self.textbox.configure(state="disabled")
                 start = self.textbox.index("end-1c linestart")
                 end = self.textbox.index("end-1c lineend")
@@ -562,30 +567,3 @@ if __name__ == "__main__":
   def close(self):
         self.conn.close()
 
-class VideoApp:
-    def __init__(self, window, window_title, video_source=0):
-        # ... (other initialization code) ...
-
-        def start_video(self):
-            self.is_playing = True
-            self.update()
-
-        def stop_video(self):
-            self.is_playing = False
-
-        def update(self):
-            if self.is_playing:
-                ret, frame = self.vid.read()
-                if ret:
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
-                    self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
-
-            if self.is_playing:
-                # Call update function again after 10 milliseconds (10ms delay)
-                self.canvas.after(10, self.update)
-
-        def __del__(self):
-            if self.vid.isOpened():
-                self.vid.release()
-                    
