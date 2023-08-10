@@ -52,14 +52,14 @@ def get_contours(image):
 
 
 
-def compare_contours():
+def compare_contours(image1, image2):
 
     # Start timer
     start = timeit.default_timer()
 
     # Get contours of two images
-    contours1, image1 = get_contours('cam_frames\image_9.jpg')
-    contours2, image2 = get_contours('cam_frames\image_11.jpg')
+    contours1, image1 = get_contours(image1)
+    contours2, image2 = get_contours(image2)
 
     # Find the largest contour in each image
     contour1 = max(contours1, key=cv2.contourArea)

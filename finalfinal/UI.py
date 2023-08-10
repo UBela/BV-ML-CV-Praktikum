@@ -284,11 +284,11 @@ class App(customtkinter.CTk):
              #photo.show()   
                
         
-         width, height = round(self.width * 0.4),round(self.height * 0.4)
-         #camera_ip = "http://192.168.178.68:81/stream"
-         camera_ip = 0
+         width, height = round(self.width * 0.7),round(self.height * 0.7)
+         camera_ip = "http://192.168.178.68:81/stream"
+         #camera_ip = 0
 
-         self.video_app=VideoApp(self,"Live Video Feed", camera_ip, width, height)
+         self.video_app = VideoApp(self,"Live Video Feed", camera_ip, width, height)
          def start_video(self):
              if not self.video_app:
                 self.canvas = tk.Canvas(self, width,height)
@@ -297,8 +297,10 @@ class App(customtkinter.CTk):
                 self.video_app=VideoApp(self,"Live Video Feed", camera_ip)  
              else:
                  print("Live Video Feed is already active")
+             
+             self.bg_image_label.configure(image='')
                  
-         print(self.plate_formats_contour)
+         
     
         ### process for checking 
          def get_current_image(self):

@@ -16,5 +16,7 @@ with open('reference_contour.pkl', 'rb') as f:
 
 print (matching.compare_ContourImage(contour,image2))
 
+matching.compare_contours(image1, image2)
+
 
 
